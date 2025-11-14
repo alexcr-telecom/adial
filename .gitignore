@@ -1,0 +1,69 @@
+.DS_Store
+
+application/cache/*
+!application/cache/index.html
+
+application/logs/*
+!application/logs/index.html
+
+!application/*/.htaccess
+
+composer.lock
+tests/mocks/database/ci_test.sqlite
+
+user_guide_src/build/*
+user_guide_src/cilexer/build/*
+user_guide_src/cilexer/dist/*
+user_guide_src/cilexer/pycilexer.egg-info/*
+/vendor/
+
+# IDE Files
+#-------------------------
+/nbproject/
+.idea/*
+
+## Sublime Text cache files
+*.tmlanguage.cache
+*.tmPreferences.cache
+*.stTheme.cache
+*.sublime-workspace
+*.sublime-project
+/tests/tests/
+/tests/results/
+
+# ARI Dialer specific
+#-------------------------
+# Logs
+logs/*
+!logs/.htaccess
+*.log
+
+# User uploads and recordings
+uploads/*
+!uploads/.htaccess
+recordings/*
+!recordings/.htaccess
+
+# Sensitive environment files
+.env
+stasis-app/.env
+.credentials
+
+# Node modules
+stasis-app/node_modules/
+stasis-app/package-lock.json
+
+# Backup files
+*.bak
+*.backup
+*.old
+
+# Session files
+application/sessions/*
+!application/sessions/index.html
+
+# OS files
+Thumbs.db
+*~
+*.swp
+*.swo
