@@ -81,31 +81,6 @@ async function initDatabase() {
 }
 
 /**
- * Log ARI request/response to database
- */
-async function logARI(type, method, endpoint, requestData, responseData, statusCode, error) {
-  if (!config.debug) return;
-
-  try {
-    await dbPool.execute(
-      `INSERT INTO ari_logs (log_type, method, endpoint, request_data, response_data, status_code, error_message)
-       VALUES (?, ?, ?, ?, ?, ?, ?)`,
-      [
-        type,
-        method,
-        endpoint,
-        requestData ? JSON.stringify(requestData) : null,
-        responseData ? JSON.stringify(responseData) : null,
-        statusCode,
-        error ? error.toString() : null
-      ]
-    );
-  } catch (err) {
-    logger.error('Failed to log ARI call:', err);
-  }
-}
-
-/**
  * Get active campaigns from database
  */
 async function loadActiveCampaigns() {
@@ -233,7 +208,6 @@ async function dialNumber(campaign, numberRecord) {
     const response = await ariClient.channels.originate(originateParams);
 
     logger.info(`ARI RESPONSE: Channel created successfully - ID: ${channelId}`);
-    await logARI('request', 'POST', '/channels', originateParams, { channelId: channelId }, 200, null);
 
     // Track the call
     activeCalls.set(channelId, {
@@ -264,8 +238,6 @@ async function dialNumber(campaign, numberRecord) {
     if (err.stack) {
       logger.error(`Error stack: ${err.stack}`);
     }
-
-    await logARI('error', 'POST', '/channels', originateParams || null, null, null, err.message);
 
     // Mark as failed
     await dbPool.execute(

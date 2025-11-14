@@ -129,22 +129,6 @@ CREATE TABLE IF NOT EXISTS `settings` (
   UNIQUE KEY `setting_key` (`setting_key`)
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8;
 
--- ARI log table
-CREATE TABLE IF NOT EXISTS `ari_logs` (
-  `id` int(11) NOT NULL AUTO_INCREMENT,
-  `log_type` enum('request','response','event','error') NOT NULL,
-  `method` varchar(20) DEFAULT NULL,
-  `endpoint` varchar(255) DEFAULT NULL,
-  `request_data` text,
-  `response_data` text,
-  `status_code` int(11) DEFAULT NULL,
-  `error_message` text,
-  `created_at` timestamp NOT NULL DEFAULT CURRENT_TIMESTAMP,
-  PRIMARY KEY (`id`),
-  KEY `log_type` (`log_type`),
-  KEY `created_at` (`created_at`)
-) ENGINE=InnoDB DEFAULT CHARSET=utf8;
-
 -- Insert default settings
 INSERT INTO `settings` (`setting_key`, `setting_value`, `description`) VALUES
 ('ari_enabled', '1', 'Enable/Disable ARI functionality'),

@@ -393,10 +393,6 @@ The system provides AJAX endpoints for real-time updates:
    ```bash
    asterisk -rx "pjsip show endpoints"
    ```
-3. Check ARI logs in database:
-   ```sql
-   SELECT * FROM ari_logs ORDER BY created_at DESC LIMIT 10;
-   ```
 
 ### Recordings Not Working
 

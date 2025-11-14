@@ -254,11 +254,6 @@ A comprehensive auto-dialer system built with PHP (CodeIgniter), MySQL, Node.js,
 - Debug mode
 - Feature flags
 
-#### `ari_logs`
-- Request/response logging
-- Debug information
-- Error tracking
-
 ---
 
 ## 🎯 **Data Format Support**
