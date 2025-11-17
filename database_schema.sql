@@ -156,4 +156,4 @@ INSERT INTO `settings` (`setting_key`, `setting_value`, `description`) VALUES
 -- Username: admin
 -- Password: admin (CHANGE THIS IMMEDIATELY AFTER INSTALLATION!)
 INSERT INTO `users` (`username`, `password`, `email`, `full_name`, `role`, `is_active`, `created_at`) VALUES
-('admin', '$2y$10$92IXUNpkjO0rOQ5byMi.Ye4oKoEa3Ro9llC/.og/at2.uheWG/igi', 'admin@localhost', 'Administrator', 'admin', 1, NOW());
+('admin', '$2y$10$nG4K5S6hSflCLUCsgn62ze7rohekGbOgEMgvFpqhPHPHMzzoFdCA.', 'admin@localhost', 'Administrator', 'admin', 1, NOW());
