@@ -483,7 +483,21 @@ Open your web browser and navigate to:
 
 ### 2. Default Login
 
-If authentication is configured, check `/var/www/html/adial/AUTHENTICATION.md` for login details.
+The system creates a default administrator account during installation:
+
+**Default Credentials:**
+- **Username:** `admin`
+- **Password:** `admin`
+
+**⚠️ IMPORTANT SECURITY NOTICE:**
+- Change the default password immediately after first login
+- See [AUTHENTICATION.md](AUTHENTICATION.md) for detailed user management and password reset instructions
+
+**First Login Steps:**
+1. Navigate to `http://your-server-ip/adial`
+2. Log in with username: `admin` and password: `admin`
+3. Navigate to User Management (if available) or use the password reset process
+4. Change the default password to a strong password
 
 ### 3. Configure Asterisk Extensions
 

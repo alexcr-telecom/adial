@@ -129,9 +129,31 @@ CREATE TABLE IF NOT EXISTS `settings` (
   UNIQUE KEY `setting_key` (`setting_key`)
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8;
 
+-- Users table (for authentication)
+CREATE TABLE IF NOT EXISTS `users` (
+  `id` int(11) NOT NULL AUTO_INCREMENT,
+  `username` varchar(50) NOT NULL,
+  `password` varchar(255) NOT NULL,
+  `email` varchar(100) DEFAULT NULL,
+  `full_name` varchar(100) DEFAULT NULL,
+  `role` enum('admin','user') DEFAULT 'user',
+  `is_active` tinyint(1) DEFAULT '1',
+  `last_login` datetime DEFAULT NULL,
+  `created_at` datetime DEFAULT NULL,
+  `updated_at` datetime DEFAULT NULL,
+  PRIMARY KEY (`id`),
+  UNIQUE KEY `username` (`username`)
+) ENGINE=InnoDB DEFAULT CHARSET=utf8;
+
 -- Insert default settings
 INSERT INTO `settings` (`setting_key`, `setting_value`, `description`) VALUES
 ('ari_enabled', '1', 'Enable/Disable ARI functionality'),
 ('debug_mode', '1', 'Enable/Disable debug logging'),
 ('max_concurrent_campaigns', '5', 'Maximum number of concurrent campaigns'),
 ('call_timeout', '60', 'Call timeout in seconds');
+
+-- Insert default admin user
+-- Username: admin
+-- Password: admin (CHANGE THIS IMMEDIATELY AFTER INSTALLATION!)
+INSERT INTO `users` (`username`, `password`, `email`, `full_name`, `role`, `is_active`, `created_at`) VALUES
+('admin', '$2y$10$92IXUNpkjO0rOQ5byMi.Ye4oKoEa3Ro9llC/.og/at2.uheWG/igi', 'admin@localhost', 'Administrator', 'admin', 1, NOW());

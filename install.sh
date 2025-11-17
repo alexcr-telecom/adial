@@ -600,6 +600,9 @@ print_summary() {
     echo "Web Interface:"
     echo "  URL: http://${SERVER_IP}/adial"
     echo "  or:  http://localhost/adial"
+    echo "  Username: admin"
+    echo "  Password: admin"
+    echo "  ⚠️  CHANGE DEFAULT PASSWORD IMMEDIATELY!"
     echo ""
     echo "Database:"
     echo "  Database: ${DB_NAME}"
@@ -641,6 +644,12 @@ print_summary() {
     cat > "${INSTALL_DIR}/.credentials" << EOF
 ARI Dialer Installation Credentials
 Generated: $(date)
+
+Web Interface:
+  URL: http://${SERVER_IP}/adial
+  Username: admin
+  Password: admin
+  ⚠️  CHANGE DEFAULT PASSWORD IMMEDIATELY!
 
 Database:
   Database: ${DB_NAME}
