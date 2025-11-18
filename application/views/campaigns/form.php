@@ -119,6 +119,21 @@
                             </small>
                         </div>
 
+                        <div class="form-group" id="agent_exten_select_group" style="display:none;">
+                            <label for="agent_exten_select">Select Extension *</label>
+                            <select class="form-control" id="agent_exten_select" name="agent_exten_select">
+                                <option value="">-- Select Extension --</option>
+                                <?php if (!empty($endpoints)): ?>
+                                    <?php foreach ($endpoints as $endpoint): ?>
+                                        <option value="<?php echo htmlspecialchars($endpoint['technology']); ?>/<?php echo htmlspecialchars($endpoint['resource']); ?>" <?php echo isset($campaign) && $campaign->agent_dest_type == 'exten' && $campaign->agent_dest_value == $endpoint['technology'].'/'.$endpoint['resource'] ? 'selected' : ''; ?>>
+                                            <?php echo htmlspecialchars($endpoint['resource']); ?> (<?php echo $endpoint['technology']; ?>)
+                                        </option>
+                                    <?php endforeach; ?>
+                                <?php endif; ?>
+                            </select>
+                            <small class="form-text text-muted">SIP/PJSIP extensions from Asterisk</small>
+                        </div>
+
                         <div class="form-group" id="agent_ivr_select_group" style="display:none;">
                             <label for="agent_ivr_select"><?php echo $this->lang->line('campaigns_select_ivr'); ?> *</label>
                             <select class="form-control" id="agent_ivr_select" name="agent_ivr_select">
@@ -205,20 +220,32 @@ $(document).ready(function() {
 
         if (type === 'ivr') {
             $('#agent_dest_value_group').hide();
+            $('#agent_exten_select_group').hide();
             $('#agent_ivr_select_group').show();
             $('#agent_dest_value').prop('required', false);
+            $('#agent_exten_select').prop('required', false);
             $('#agent_ivr_select').prop('required', true);
+        } else if (type === 'exten') {
+            $('#agent_dest_value_group').hide();
+            $('#agent_ivr_select_group').hide();
+            $('#agent_exten_select_group').show();
+            $('#agent_dest_value').prop('required', false);
+            $('#agent_ivr_select').prop('required', false);
+            $('#agent_exten_select').prop('required', true);
+
+            // Pre-populate dropdown if agent_dest_value exists
+            var currentAgentValue = $('#agent_dest_value').val();
+            if (currentAgentValue) {
+                $('#agent_exten_select').val(currentAgentValue);
+            }
         } else {
             $('#agent_dest_value_group').show();
+            $('#agent_exten_select_group').hide();
             $('#agent_ivr_select_group').hide();
             $('#agent_dest_value').prop('required', true);
+            $('#agent_exten_select').prop('required', false);
             $('#agent_ivr_select').prop('required', false);
-
-            if (type === 'exten') {
-                $('#agent_dest_value').prop('placeholder', 'e.g., PJSIP/100');
-            } else {
-                $('#agent_dest_value').prop('placeholder', 'e.g., Local/100@from-internal or PJSIP/100');
-            }
+            $('#agent_dest_value').prop('placeholder', 'e.g., Local/100@from-internal or PJSIP/100');
         }
     }).trigger('change');
 
@@ -227,6 +254,11 @@ $(document).ready(function() {
         // If trunk type is not custom, copy selected trunk to trunk_value
         if ($('#trunk_type').val() !== 'custom') {
             $('#trunk_value').val($('#trunk_select').val());
+        }
+
+        // If agent dest type is exten, copy selected extension to agent_dest_value
+        if ($('#agent_dest_type').val() === 'exten') {
+            $('#agent_dest_value').val($('#agent_exten_select').val());
         }
 
         // If agent dest type is IVR, copy selected IVR ID to agent_dest_value

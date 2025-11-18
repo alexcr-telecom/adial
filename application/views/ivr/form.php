@@ -101,11 +101,11 @@
                                                     <option value="playback" <?php echo $action->action_type == 'playback' ? 'selected' : ''; ?>><?php echo $this->lang->line('ivr_action_playback'); ?></option>
                                                 </select>
                                             </div>
-                                            <div class="col-md-5">
+                                            <div class="col-md-5 action-value-container">
                                                 <label><?php echo $this->lang->line('ivr_action_value'); ?></label>
-                                                <input type="text" class="form-control" name="action_value[]"
+                                                <input type="text" class="form-control action-value-field" name="action_value[]"
                                                        value="<?php echo htmlspecialchars($action->action_value); ?>"
-                                                       placeholder="<?php echo $this->lang->line('ivr_help_action_placeholder'); ?>" required>
+                                                       placeholder="<?php echo $this->lang->line('ivr_help_action_placeholder'); ?>" <?php echo $action->action_type !== 'hangup' ? 'required' : ''; ?>>
                                             </div>
                                             <div class="col-md-1">
                                                 <label>&nbsp;</label><br>
@@ -117,6 +117,46 @@
                                     </div>
                                 <?php endforeach; ?>
                             <?php else: ?>
+                                <!-- Default action row 1: Invalid input (i) -> Hangup -->
+                                <div class="action-row mb-3 p-3 border rounded">
+                                    <div class="row">
+                                        <div class="col-md-3">
+                                            <label><?php echo $this->lang->line('ivr_dtmf_digit'); ?></label>
+                                            <select class="form-control" name="dtmf_digit[]" required>
+                                                <option value=""><?php echo $this->lang->line('ivr_dtmf_select'); ?></option>
+                                                <?php for($d = 0; $d <= 9; $d++): ?>
+                                                    <option value="<?php echo $d; ?>"><?php echo $d; ?></option>
+                                                <?php endfor; ?>
+                                                <option value="*"><?php echo $this->lang->line('ivr_dtmf_star'); ?></option>
+                                                <option value="#"><?php echo $this->lang->line('ivr_dtmf_hash'); ?></option>
+                                                <option value="i" selected><?php echo $this->lang->line('ivr_dtmf_invalid'); ?></option>
+                                                <option value="t"><?php echo $this->lang->line('ivr_dtmf_timeout'); ?></option>
+                                            </select>
+                                        </div>
+                                        <div class="col-md-3">
+                                            <label><?php echo $this->lang->line('ivr_action_type'); ?></label>
+                                            <select class="form-control action-type" name="action_type[]" required>
+                                                <option value="exten"><?php echo $this->lang->line('ivr_action_call_extension'); ?></option>
+                                                <option value="queue"><?php echo $this->lang->line('ivr_action_queue'); ?></option>
+                                                <option value="hangup" selected><?php echo $this->lang->line('ivr_action_hangup'); ?></option>
+                                                <option value="playback"><?php echo $this->lang->line('ivr_action_playback'); ?></option>
+                                            </select>
+                                        </div>
+                                        <div class="col-md-5 action-value-container">
+                                            <label><?php echo $this->lang->line('ivr_action_value'); ?></label>
+                                            <input type="text" class="form-control action-value-field" name="action_value[]"
+                                                   placeholder="<?php echo $this->lang->line('ivr_help_action_placeholder'); ?>">
+                                        </div>
+                                        <div class="col-md-1">
+                                            <label>&nbsp;</label><br>
+                                            <button type="button" class="btn btn-danger btn-sm btn-remove-action">
+                                                <i class="fas fa-trash"></i>
+                                            </button>
+                                        </div>
+                                    </div>
+                                </div>
+
+                                <!-- Default action row 2: Timeout (t) -> Hangup -->
                                 <div class="action-row mb-3 p-3 border rounded">
                                     <div class="row">
                                         <div class="col-md-3">
@@ -129,7 +169,7 @@
                                                 <option value="*"><?php echo $this->lang->line('ivr_dtmf_star'); ?></option>
                                                 <option value="#"><?php echo $this->lang->line('ivr_dtmf_hash'); ?></option>
                                                 <option value="i"><?php echo $this->lang->line('ivr_dtmf_invalid'); ?></option>
-                                                <option value="t"><?php echo $this->lang->line('ivr_dtmf_timeout'); ?></option>
+                                                <option value="t" selected><?php echo $this->lang->line('ivr_dtmf_timeout'); ?></option>
                                             </select>
                                         </div>
                                         <div class="col-md-3">
@@ -137,14 +177,14 @@
                                             <select class="form-control action-type" name="action_type[]" required>
                                                 <option value="exten"><?php echo $this->lang->line('ivr_action_call_extension'); ?></option>
                                                 <option value="queue"><?php echo $this->lang->line('ivr_action_queue'); ?></option>
-                                                <option value="hangup"><?php echo $this->lang->line('ivr_action_hangup'); ?></option>
+                                                <option value="hangup" selected><?php echo $this->lang->line('ivr_action_hangup'); ?></option>
                                                 <option value="playback"><?php echo $this->lang->line('ivr_action_playback'); ?></option>
                                             </select>
                                         </div>
-                                        <div class="col-md-5">
+                                        <div class="col-md-5 action-value-container">
                                             <label><?php echo $this->lang->line('ivr_action_value'); ?></label>
-                                            <input type="text" class="form-control" name="action_value[]"
-                                                   placeholder="<?php echo $this->lang->line('ivr_help_action_placeholder'); ?>" required>
+                                            <input type="text" class="form-control action-value-field" name="action_value[]"
+                                                   placeholder="<?php echo $this->lang->line('ivr_help_action_placeholder'); ?>">
                                         </div>
                                         <div class="col-md-1">
                                             <label>&nbsp;</label><br>
@@ -214,9 +254,9 @@ $(document).ready(function() {
                             <option value="playback"><?php echo $this->lang->line('ivr_action_playback'); ?></option>
                         </select>
                     </div>
-                    <div class="col-md-5">
+                    <div class="col-md-5 action-value-container">
                         <label><?php echo $this->lang->line('ivr_action_value'); ?></label>
-                        <input type="text" class="form-control" name="action_value[]"
+                        <input type="text" class="form-control action-value-field" name="action_value[]"
                                placeholder="<?php echo $this->lang->line('ivr_help_action_placeholder'); ?>" required>
                     </div>
                     <div class="col-md-1">
@@ -239,6 +279,27 @@ $(document).ready(function() {
         } else {
             alert('<?php echo $this->lang->line('ivr_at_least_one_action'); ?>');
         }
+    });
+
+    // Handle action type change to show/hide action value field
+    $(document).on('change', '.action-type', function() {
+        var actionType = $(this).val();
+        var $actionRow = $(this).closest('.action-row');
+        var $actionValueContainer = $actionRow.find('.action-value-container');
+        var $actionValueField = $actionRow.find('.action-value-field');
+
+        if (actionType === 'hangup') {
+            $actionValueContainer.hide();
+            $actionValueField.prop('required', false).val('');
+        } else {
+            $actionValueContainer.show();
+            $actionValueField.prop('required', true);
+        }
+    });
+
+    // Trigger on page load for existing rows
+    $('.action-type').each(function() {
+        $(this).trigger('change');
     });
 });
 </script>
