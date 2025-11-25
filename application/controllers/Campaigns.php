@@ -181,7 +181,8 @@ class Campaigns extends MY_Controller {
         );
 
         if ($this->Campaign_model->update_status($id, $status_map[$action])) {
-            // If stopping, reset all numbers to pending status
+            // If stopping, reset all numbers to pending status for full campaign reset
+            // If pausing or starting, do NOT reset - allow resume from current position
             if ($action === 'stop') {
                 $this->db->where('campaign_id', $id);
                 $this->db->update('campaign_numbers', array(

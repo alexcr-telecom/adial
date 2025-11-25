@@ -149,7 +149,7 @@ function startCampaign(campaignId) {
 /**
  * Stop processing a campaign
  */
-function stopCampaign(campaignId) {
+async function stopCampaign(campaignId) {
   const campaign = activeCampaigns.get(campaignId);
   if (!campaign) return;
 
@@ -158,6 +158,37 @@ function stopCampaign(campaignId) {
   if (campaign.processInterval) {
     clearInterval(campaign.processInterval);
     campaign.processInterval = null;
+  }
+
+  // Check if campaign is fully stopped (not just paused)
+  // Only hang up active calls if campaign status is 'stopped', not 'paused'
+  try {
+    const [rows] = await dbPool.execute(
+      'SELECT status FROM campaigns WHERE id = ?',
+      [campaignId]
+    );
+
+    if (rows.length > 0 && rows[0].status === 'stopped') {
+      // Campaign is fully stopped - hang up all active calls
+      logger.info(`Campaign ${campaignId} is stopped - hanging up all active calls`);
+      for (const [channelId, callInfo] of activeCalls.entries()) {
+        if (callInfo.campaignId === campaignId) {
+          logger.info(`Hanging up active call ${channelId} due to campaign stop`);
+          try {
+            // Try to hangup the channel via ARI
+            ariClient.channels.hangup({ channelId: channelId }).catch(err => {
+              logger.warn(`Failed to hangup channel ${channelId}: ${err.message}`);
+            });
+          } catch (err) {
+            logger.warn(`Error hanging up channel ${channelId}: ${err.message}`);
+          }
+        }
+      }
+    } else {
+      logger.info(`Campaign ${campaignId} is paused - keeping active calls running`);
+    }
+  } catch (err) {
+    logger.error(`Error checking campaign ${campaignId} status:`, err);
   }
 
   activeCampaigns.delete(campaignId);
