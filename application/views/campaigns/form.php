@@ -154,7 +154,7 @@
                         <div class="form-group">
                             <div class="custom-control custom-checkbox">
                                 <input type="checkbox" class="custom-control-input" id="record_calls" name="record_calls" value="1"
-                                       <?php echo isset($campaign) && $campaign->record_calls ? 'checked' : ''; ?>>
+                                       <?php echo !isset($campaign) || $campaign->record_calls ? 'checked' : ''; ?>>
                                 <label class="custom-control-label" for="record_calls">
                                     <?php echo $this->lang->line('campaigns_record_calls'); ?> (<?php echo $this->lang->line('campaigns_help_record_calls'); ?>)
                                 </label>

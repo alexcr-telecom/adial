@@ -1,10 +1,79 @@
--- Asterisk ARI Dialer Database Schema
--- Create database
-CREATE DATABASE IF NOT EXISTS `adialer` DEFAULT CHARACTER SET utf8 COLLATE utf8_general_ci;
-USE `adialer`;
+-- MySQL dump 10.14  Distrib 5.5.65-MariaDB, for Linux (x86_64)
+--
+-- Host: localhost    Database: adialer
+-- ------------------------------------------------------
+-- Server version	5.5.65-MariaDB
 
--- Campaigns table
-CREATE TABLE IF NOT EXISTS `campaigns` (
+/*!40101 SET @OLD_CHARACTER_SET_CLIENT=@@CHARACTER_SET_CLIENT */;
+/*!40101 SET @OLD_CHARACTER_SET_RESULTS=@@CHARACTER_SET_RESULTS */;
+/*!40101 SET @OLD_COLLATION_CONNECTION=@@COLLATION_CONNECTION */;
+/*!40101 SET NAMES utf8 */;
+/*!40103 SET @OLD_TIME_ZONE=@@TIME_ZONE */;
+/*!40103 SET TIME_ZONE='+00:00' */;
+/*!40014 SET @OLD_UNIQUE_CHECKS=@@UNIQUE_CHECKS, UNIQUE_CHECKS=0 */;
+/*!40014 SET @OLD_FOREIGN_KEY_CHECKS=@@FOREIGN_KEY_CHECKS, FOREIGN_KEY_CHECKS=0 */;
+/*!40101 SET @OLD_SQL_MODE=@@SQL_MODE, SQL_MODE='NO_AUTO_VALUE_ON_ZERO' */;
+/*!40111 SET @OLD_SQL_NOTES=@@SQL_NOTES, SQL_NOTES=0 */;
+
+--
+-- Table structure for table `active_channels`
+--
+
+DROP TABLE IF EXISTS `active_channels`;
+/*!40101 SET @saved_cs_client     = @@character_set_client */;
+/*!40101 SET character_set_client = utf8 */;
+CREATE TABLE `active_channels` (
+  `id` int(11) NOT NULL AUTO_INCREMENT,
+  `campaign_id` int(11) DEFAULT NULL,
+  `channel_id` varchar(255) NOT NULL,
+  `state` varchar(50) DEFAULT NULL,
+  `caller` varchar(100) DEFAULT NULL,
+  `connected` varchar(100) DEFAULT NULL,
+  `accountcode` varchar(100) DEFAULT NULL,
+  `dialplan_app` varchar(100) DEFAULT NULL,
+  `dialplan_appdata` text,
+  `created_at` timestamp NOT NULL DEFAULT CURRENT_TIMESTAMP,
+  `updated_at` datetime DEFAULT NULL,
+  PRIMARY KEY (`id`),
+  UNIQUE KEY `channel_id` (`channel_id`),
+  KEY `campaign_id` (`campaign_id`),
+  CONSTRAINT `active_channels_ibfk_1` FOREIGN KEY (`campaign_id`) REFERENCES `campaigns` (`id`) ON DELETE SET NULL
+) ENGINE=InnoDB DEFAULT CHARSET=utf8;
+/*!40101 SET character_set_client = @saved_cs_client */;
+
+--
+-- Table structure for table `campaign_numbers`
+--
+
+DROP TABLE IF EXISTS `campaign_numbers`;
+/*!40101 SET @saved_cs_client     = @@character_set_client */;
+/*!40101 SET character_set_client = utf8 */;
+CREATE TABLE `campaign_numbers` (
+  `id` int(11) NOT NULL AUTO_INCREMENT,
+  `campaign_id` int(11) NOT NULL,
+  `phone_number` varchar(50) NOT NULL,
+  `status` enum('pending','calling','answered','failed','completed','no_answer','busy') NOT NULL DEFAULT 'pending',
+  `attempts` int(11) NOT NULL DEFAULT '0',
+  `last_attempt` timestamp NULL DEFAULT NULL,
+  `data` text COMMENT 'Additional JSON data for the number',
+  `created_at` timestamp NOT NULL DEFAULT CURRENT_TIMESTAMP,
+  `updated_at` datetime DEFAULT NULL,
+  PRIMARY KEY (`id`),
+  KEY `campaign_id` (`campaign_id`),
+  KEY `status` (`status`),
+  KEY `phone_number` (`phone_number`),
+  CONSTRAINT `campaign_numbers_ibfk_1` FOREIGN KEY (`campaign_id`) REFERENCES `campaigns` (`id`) ON DELETE CASCADE
+) ENGINE=InnoDB AUTO_INCREMENT=19 DEFAULT CHARSET=utf8;
+/*!40101 SET character_set_client = @saved_cs_client */;
+
+--
+-- Table structure for table `campaigns`
+--
+
+DROP TABLE IF EXISTS `campaigns`;
+/*!40101 SET @saved_cs_client     = @@character_set_client */;
+/*!40101 SET character_set_client = utf8 */;
+CREATE TABLE `campaigns` (
   `id` int(11) NOT NULL AUTO_INCREMENT,
   `name` varchar(255) NOT NULL,
   `description` text,
@@ -22,56 +91,17 @@ CREATE TABLE IF NOT EXISTS `campaigns` (
   `updated_at` datetime DEFAULT NULL,
   PRIMARY KEY (`id`),
   KEY `status` (`status`)
-) ENGINE=InnoDB DEFAULT CHARSET=utf8;
+) ENGINE=InnoDB AUTO_INCREMENT=9 DEFAULT CHARSET=utf8;
+/*!40101 SET character_set_client = @saved_cs_client */;
 
--- Campaign numbers table
-CREATE TABLE IF NOT EXISTS `campaign_numbers` (
-  `id` int(11) NOT NULL AUTO_INCREMENT,
-  `campaign_id` int(11) NOT NULL,
-  `phone_number` varchar(50) NOT NULL,
-  `status` enum('pending','calling','answered','failed','completed','no_answer','busy') NOT NULL DEFAULT 'pending',
-  `attempts` int(11) NOT NULL DEFAULT '0',
-  `last_attempt` timestamp NULL DEFAULT NULL,
-  `data` text COMMENT 'Additional JSON data for the number',
-  `created_at` timestamp NOT NULL DEFAULT CURRENT_TIMESTAMP,
-  `updated_at` datetime DEFAULT NULL,
-  PRIMARY KEY (`id`),
-  KEY `campaign_id` (`campaign_id`),
-  KEY `status` (`status`),
-  KEY `phone_number` (`phone_number`),
-  CONSTRAINT `campaign_numbers_ibfk_1` FOREIGN KEY (`campaign_id`) REFERENCES `campaigns` (`id`) ON DELETE CASCADE
-) ENGINE=InnoDB DEFAULT CHARSET=utf8;
+--
+-- Table structure for table `cdr`
+--
 
--- IVR menus table
-CREATE TABLE IF NOT EXISTS `ivr_menus` (
-  `id` int(11) NOT NULL AUTO_INCREMENT,
-  `campaign_id` int(11) NOT NULL,
-  `name` varchar(255) NOT NULL,
-  `audio_file` varchar(255) NOT NULL COMMENT 'Path to audio file',
-  `timeout` int(11) NOT NULL DEFAULT '10',
-  `max_digits` int(11) NOT NULL DEFAULT '1',
-  `created_at` timestamp NOT NULL DEFAULT CURRENT_TIMESTAMP,
-  `updated_at` datetime DEFAULT NULL,
-  PRIMARY KEY (`id`),
-  KEY `campaign_id` (`campaign_id`),
-  CONSTRAINT `ivr_menus_ibfk_1` FOREIGN KEY (`campaign_id`) REFERENCES `campaigns` (`id`) ON DELETE CASCADE
-) ENGINE=InnoDB DEFAULT CHARSET=utf8;
-
--- IVR actions table
-CREATE TABLE IF NOT EXISTS `ivr_actions` (
-  `id` int(11) NOT NULL AUTO_INCREMENT,
-  `ivr_menu_id` int(11) NOT NULL,
-  `dtmf_digit` varchar(10) NOT NULL,
-  `action_type` enum('exten','queue','hangup','playback','goto_ivr') NOT NULL,
-  `action_value` varchar(255) NOT NULL,
-  `created_at` timestamp NOT NULL DEFAULT CURRENT_TIMESTAMP,
-  PRIMARY KEY (`id`),
-  KEY `ivr_menu_id` (`ivr_menu_id`),
-  CONSTRAINT `ivr_actions_ibfk_1` FOREIGN KEY (`ivr_menu_id`) REFERENCES `ivr_menus` (`id`) ON DELETE CASCADE
-) ENGINE=InnoDB DEFAULT CHARSET=utf8;
-
--- CDR (Call Detail Records) table
-CREATE TABLE IF NOT EXISTS `cdr` (
+DROP TABLE IF EXISTS `cdr`;
+/*!40101 SET @saved_cs_client     = @@character_set_client */;
+/*!40101 SET character_set_client = utf8 */;
+CREATE TABLE `cdr` (
   `id` int(11) NOT NULL AUTO_INCREMENT,
   `campaign_id` int(11) DEFAULT NULL,
   `campaign_number_id` int(11) DEFAULT NULL,
@@ -98,28 +128,58 @@ CREATE TABLE IF NOT EXISTS `cdr` (
   CONSTRAINT `cdr_ibfk_1` FOREIGN KEY (`campaign_id`) REFERENCES `campaigns` (`id`) ON DELETE SET NULL,
   CONSTRAINT `cdr_ibfk_2` FOREIGN KEY (`campaign_number_id`) REFERENCES `campaign_numbers` (`id`) ON DELETE SET NULL
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8;
+/*!40101 SET character_set_client = @saved_cs_client */;
 
--- Active channels table (for real-time monitoring)
-CREATE TABLE IF NOT EXISTS `active_channels` (
+--
+-- Table structure for table `ivr_actions`
+--
+
+DROP TABLE IF EXISTS `ivr_actions`;
+/*!40101 SET @saved_cs_client     = @@character_set_client */;
+/*!40101 SET character_set_client = utf8 */;
+CREATE TABLE `ivr_actions` (
   `id` int(11) NOT NULL AUTO_INCREMENT,
-  `campaign_id` int(11) DEFAULT NULL,
-  `channel_id` varchar(255) NOT NULL,
-  `state` varchar(50) DEFAULT NULL,
-  `caller` varchar(100) DEFAULT NULL,
-  `connected` varchar(100) DEFAULT NULL,
-  `accountcode` varchar(100) DEFAULT NULL,
-  `dialplan_app` varchar(100) DEFAULT NULL,
-  `dialplan_appdata` text,
+  `ivr_menu_id` int(11) NOT NULL,
+  `dtmf_digit` varchar(10) NOT NULL,
+  `action_type` enum('exten','queue','hangup','playback','goto_ivr') NOT NULL,
+  `action_value` varchar(255) NOT NULL,
+  `created_at` timestamp NOT NULL DEFAULT CURRENT_TIMESTAMP,
+  PRIMARY KEY (`id`),
+  KEY `ivr_menu_id` (`ivr_menu_id`),
+  CONSTRAINT `ivr_actions_ibfk_1` FOREIGN KEY (`ivr_menu_id`) REFERENCES `ivr_menus` (`id`) ON DELETE CASCADE
+) ENGINE=InnoDB AUTO_INCREMENT=23 DEFAULT CHARSET=utf8;
+/*!40101 SET character_set_client = @saved_cs_client */;
+
+--
+-- Table structure for table `ivr_menus`
+--
+
+DROP TABLE IF EXISTS `ivr_menus`;
+/*!40101 SET @saved_cs_client     = @@character_set_client */;
+/*!40101 SET character_set_client = utf8 */;
+CREATE TABLE `ivr_menus` (
+  `id` int(11) NOT NULL AUTO_INCREMENT,
+  `campaign_id` int(11) NOT NULL,
+  `name` varchar(255) NOT NULL,
+  `audio_file` varchar(255) NOT NULL COMMENT 'Path to audio file',
+  `timeout` int(11) NOT NULL DEFAULT '10',
+  `max_digits` int(11) NOT NULL DEFAULT '1',
   `created_at` timestamp NOT NULL DEFAULT CURRENT_TIMESTAMP,
   `updated_at` datetime DEFAULT NULL,
   PRIMARY KEY (`id`),
-  UNIQUE KEY `channel_id` (`channel_id`),
   KEY `campaign_id` (`campaign_id`),
-  CONSTRAINT `active_channels_ibfk_1` FOREIGN KEY (`campaign_id`) REFERENCES `campaigns` (`id`) ON DELETE SET NULL
-) ENGINE=InnoDB DEFAULT CHARSET=utf8;
+  CONSTRAINT `ivr_menus_ibfk_1` FOREIGN KEY (`campaign_id`) REFERENCES `campaigns` (`id`) ON DELETE CASCADE
+) ENGINE=InnoDB AUTO_INCREMENT=5 DEFAULT CHARSET=utf8;
+/*!40101 SET character_set_client = @saved_cs_client */;
 
--- System settings table
-CREATE TABLE IF NOT EXISTS `settings` (
+--
+-- Table structure for table `settings`
+--
+
+DROP TABLE IF EXISTS `settings`;
+/*!40101 SET @saved_cs_client     = @@character_set_client */;
+/*!40101 SET character_set_client = utf8 */;
+CREATE TABLE `settings` (
   `id` int(11) NOT NULL AUTO_INCREMENT,
   `setting_key` varchar(100) NOT NULL,
   `setting_value` text,
@@ -127,10 +187,17 @@ CREATE TABLE IF NOT EXISTS `settings` (
   `updated_at` datetime DEFAULT NULL,
   PRIMARY KEY (`id`),
   UNIQUE KEY `setting_key` (`setting_key`)
-) ENGINE=InnoDB DEFAULT CHARSET=utf8;
+) ENGINE=InnoDB AUTO_INCREMENT=5 DEFAULT CHARSET=utf8;
+/*!40101 SET character_set_client = @saved_cs_client */;
 
--- Users table (for authentication)
-CREATE TABLE IF NOT EXISTS `users` (
+--
+-- Table structure for table `users`
+--
+
+DROP TABLE IF EXISTS `users`;
+/*!40101 SET @saved_cs_client     = @@character_set_client */;
+/*!40101 SET character_set_client = utf8 */;
+CREATE TABLE `users` (
   `id` int(11) NOT NULL AUTO_INCREMENT,
   `username` varchar(50) NOT NULL,
   `password` varchar(255) NOT NULL,
@@ -143,17 +210,20 @@ CREATE TABLE IF NOT EXISTS `users` (
   `updated_at` datetime DEFAULT NULL,
   PRIMARY KEY (`id`),
   UNIQUE KEY `username` (`username`)
-) ENGINE=InnoDB DEFAULT CHARSET=utf8;
+) ENGINE=InnoDB AUTO_INCREMENT=2 DEFAULT CHARSET=utf8;
+/*!40101 SET character_set_client = @saved_cs_client */;
 
--- Insert default settings
-INSERT INTO `settings` (`setting_key`, `setting_value`, `description`) VALUES
-('ari_enabled', '1', 'Enable/Disable ARI functionality'),
-('debug_mode', '1', 'Enable/Disable debug logging'),
-('max_concurrent_campaigns', '5', 'Maximum number of concurrent campaigns'),
-('call_timeout', '60', 'Call timeout in seconds');
+--
+-- Dumping routines for database 'adialer'
+--
+/*!40103 SET TIME_ZONE=@OLD_TIME_ZONE */;
 
--- Insert default admin user
--- Username: admin
--- Password: admin (CHANGE THIS IMMEDIATELY AFTER INSTALLATION!)
-INSERT INTO `users` (`username`, `password`, `email`, `full_name`, `role`, `is_active`, `created_at`) VALUES
-('admin', '$2y$10$nG4K5S6hSflCLUCsgn62ze7rohekGbOgEMgvFpqhPHPHMzzoFdCA.', 'admin@localhost', 'Administrator', 'admin', 1, NOW());
+/*!40101 SET SQL_MODE=@OLD_SQL_MODE */;
+/*!40014 SET FOREIGN_KEY_CHECKS=@OLD_FOREIGN_KEY_CHECKS */;
+/*!40014 SET UNIQUE_CHECKS=@OLD_UNIQUE_CHECKS */;
+/*!40101 SET CHARACTER_SET_CLIENT=@OLD_CHARACTER_SET_CLIENT */;
+/*!40101 SET CHARACTER_SET_RESULTS=@OLD_CHARACTER_SET_RESULTS */;
+/*!40101 SET COLLATION_CONNECTION=@OLD_COLLATION_CONNECTION */;
+/*!40111 SET SQL_NOTES=@OLD_SQL_NOTES */;
+
+-- Dump completed on 2025-12-05 17:02:56
