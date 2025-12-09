@@ -587,7 +587,7 @@ class Api extends API_Controller {
         // Check Asterisk status
         $asterisk_status = false;
         try {
-            $info = $this->Ari_client->get_asterisk_info();
+            $info = $this->ari_client->get_asterisk_info();
             $asterisk_status = isset($info['system_name']);
         } catch (Exception $e) {
             $asterisk_status = false;
@@ -600,7 +600,7 @@ class Api extends API_Controller {
         $active_channels = 0;
         if ($asterisk_status) {
             try {
-                $channels = $this->Ari_client->get_channels();
+                $channels = $this->ari_client->get_channels();
                 $active_channels = is_array($channels) ? count($channels) : 0;
             } catch (Exception $e) {
                 $active_channels = 0;
@@ -628,7 +628,7 @@ class Api extends API_Controller {
      */
     public function monitoring_channels() {
         try {
-            $channels = $this->Ari_client->get_channels();
+            $channels = $this->ari_client->get_channels();
 
             $this->response_success(array(
                 'channels' => $channels,
@@ -654,7 +654,7 @@ class Api extends API_Controller {
         $channels = array();
         $channel_count = 0;
         try {
-            $channels = $this->Ari_client->get_channels();
+            $channels = $this->ari_client->get_channels();
             $channel_count = is_array($channels) ? count($channels) : 0;
         } catch (Exception $e) {
             // Ignore error
