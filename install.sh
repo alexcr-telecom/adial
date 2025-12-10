@@ -667,26 +667,30 @@ EOF
         print_warning "ARI config file not found at ${INSTALL_DIR}/application/config/ari.php"
     fi
 
-    # Update stasis-app .env file
+    # Generate complete stasis-app .env file with all credentials
     if [ -d "${INSTALL_DIR}/stasis-app" ]; then
         cat > "${INSTALL_DIR}/stasis-app/.env" << EOF
 # Asterisk ARI Configuration
-ARI_HOST=localhost
+ARI_HOST=127.0.0.1
 ARI_PORT=8088
 ARI_USERNAME=${ARI_USER}
 ARI_PASSWORD=${ARI_PASS}
-ARI_APP=dialer
+ARI_APP_NAME=dialer
 
-# Database Configuration
-DB_HOST=localhost
+# MySQL Database Configuration
+DB_HOST=127.0.0.1
 DB_USER=${DB_USER}
 DB_PASSWORD=${DB_PASS}
 DB_NAME=${DB_NAME}
 
-# Logging
-LOG_LEVEL=info
+# Application Settings
+DEBUG_MODE=true
+LOG_LEVEL=debug
+RECORDINGS_PATH=/var/spool/asterisk/monitor/adial
+SOUNDS_PATH=/var/lib/asterisk/sounds/dialer
 EOF
-        print_success "Stasis app .env file created with ARI and database credentials"
+        chmod 600 "${INSTALL_DIR}/stasis-app/.env"
+        print_success "Stasis app .env file created with complete configuration"
     else
         print_warning "Stasis app directory not found at ${INSTALL_DIR}/stasis-app"
     fi
