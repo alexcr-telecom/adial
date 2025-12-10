@@ -378,6 +378,19 @@ setup_database() {
         print_warning "Database schema file not found"
     fi
 
+    # Update database configuration immediately after database is created
+    # This ensures the application can connect to the database
+    print_info "Updating database configuration in application files..."
+    if [ -f "${INSTALL_DIR}/application/config/database.php" ]; then
+        sed -i "s/'hostname' => '[^']*'/'hostname' => 'localhost'/g" "${INSTALL_DIR}/application/config/database.php"
+        sed -i "s/'username' => '[^']*'/'username' => '${DB_USER}'/g" "${INSTALL_DIR}/application/config/database.php"
+        sed -i "s/'password' => '[^']*'/'password' => '${DB_PASS}'/g" "${INSTALL_DIR}/application/config/database.php"
+        sed -i "s/'database' => '[^']*'/'database' => '${DB_NAME}'/g" "${INSTALL_DIR}/application/config/database.php"
+        print_success "Database configuration updated in application/config/database.php"
+    else
+        print_warning "Database config file not found at ${INSTALL_DIR}/application/config/database.php"
+    fi
+
     print_success "Database setup completed"
     echo ""
 }
@@ -389,53 +402,13 @@ setup_database() {
 configure_application() {
     print_header "Configuring Application"
 
-    # Configure database connection
-    print_info "Configuring database connection..."
-
-    if [ -f "${INSTALL_DIR}/application/config/database.php" ]; then
-        sed -i "s/'hostname' => '.*'/'hostname' => 'localhost'/g" "${INSTALL_DIR}/application/config/database.php"
-        sed -i "s/'username' => '.*'/'username' => '${DB_USER}'/g" "${INSTALL_DIR}/application/config/database.php"
-        sed -i "s/'password' => '.*'/'password' => '${DB_PASS}'/g" "${INSTALL_DIR}/application/config/database.php"
-        sed -i "s/'database' => '.*'/'database' => '${DB_NAME}'/g" "${INSTALL_DIR}/application/config/database.php"
-        print_success "Database configuration updated"
-    else
-        print_error "Database config file not found"
-    fi
-
-    # Configure ARI connection
+    # Generate ARI password if not set
     if [ -z "$ARI_PASS" ]; then
         ARI_PASS=$(generate_password)
         print_info "Generated ARI password: $ARI_PASS"
     fi
 
-    if [ -f "${INSTALL_DIR}/application/config/ari.php" ]; then
-        sed -i "s/\$config\['ari_username'\] = '.*'/\$config['ari_username'] = '${ARI_USER}'/g" "${INSTALL_DIR}/application/config/ari.php"
-        sed -i "s/\$config\['ari_password'\] = '.*'/\$config['ari_password'] = '${ARI_PASS}'/g" "${INSTALL_DIR}/application/config/ari.php"
-        print_success "ARI configuration updated"
-    fi
-
-    # Configure stasis app .env file
-    if [ -d "${INSTALL_DIR}/stasis-app" ]; then
-        cat > "${INSTALL_DIR}/stasis-app/.env" << EOF
-# Asterisk ARI Configuration
-ARI_HOST=localhost
-ARI_PORT=8088
-ARI_USERNAME=${ARI_USER}
-ARI_PASSWORD=${ARI_PASS}
-ARI_APP=dialer
-
-# Database Configuration
-DB_HOST=localhost
-DB_USER=${DB_USER}
-DB_PASSWORD=${DB_PASS}
-DB_NAME=${DB_NAME}
-
-# Logging
-LOG_LEVEL=info
-EOF
-        print_success "Stasis app environment configured"
-    fi
-
+    print_info "Database and ARI configurations will be updated after Asterisk setup"
     echo ""
 }
 
@@ -681,6 +654,41 @@ EOF
         systemctl restart asterisk 2>/dev/null || asterisk -rx "core reload" 2>/dev/null || true
 
         print_success "Asterisk ARI configured"
+    fi
+
+    # Update ARI configuration immediately after ARI user is created in Asterisk
+    # This ensures the application and stasis-app can connect to Asterisk ARI
+    print_info "Updating ARI configuration in application files..."
+    if [ -f "${INSTALL_DIR}/application/config/ari.php" ]; then
+        sed -i "s/\$config\['ari_username'\] = '[^']*';/\$config['ari_username'] = '${ARI_USER}';/g" "${INSTALL_DIR}/application/config/ari.php"
+        sed -i "s/\$config\['ari_password'\] = '[^']*';/\$config['ari_password'] = '${ARI_PASS}';/g" "${INSTALL_DIR}/application/config/ari.php"
+        print_success "ARI configuration updated in application/config/ari.php"
+    else
+        print_warning "ARI config file not found at ${INSTALL_DIR}/application/config/ari.php"
+    fi
+
+    # Update stasis-app .env file
+    if [ -d "${INSTALL_DIR}/stasis-app" ]; then
+        cat > "${INSTALL_DIR}/stasis-app/.env" << EOF
+# Asterisk ARI Configuration
+ARI_HOST=localhost
+ARI_PORT=8088
+ARI_USERNAME=${ARI_USER}
+ARI_PASSWORD=${ARI_PASS}
+ARI_APP=dialer
+
+# Database Configuration
+DB_HOST=localhost
+DB_USER=${DB_USER}
+DB_PASSWORD=${DB_PASS}
+DB_NAME=${DB_NAME}
+
+# Logging
+LOG_LEVEL=info
+EOF
+        print_success "Stasis app .env file created with ARI and database credentials"
+    else
+        print_warning "Stasis app directory not found at ${INSTALL_DIR}/stasis-app"
     fi
 
     echo ""
