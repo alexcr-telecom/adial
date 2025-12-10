@@ -582,8 +582,57 @@ EOF
 configure_asterisk() {
     print_header "Configuring Asterisk ARI"
 
+    # Generate ARI password if not set
+    if [ -z "$ARI_PASS" ]; then
+        ARI_PASS=$(generate_password)
+        print_info "Generated ARI password: $ARI_PASS"
+    fi
+
+    # Always create .env file for stasis-app, even if Asterisk is not installed yet
+    # This ensures the application is ready when Asterisk is installed later
+    if [ -d "${INSTALL_DIR}/stasis-app" ]; then
+        print_info "Creating stasis-app .env file..."
+        cat > "${INSTALL_DIR}/stasis-app/.env" << EOF
+# Asterisk ARI Configuration
+ARI_HOST=127.0.0.1
+ARI_PORT=8088
+ARI_USERNAME=${ARI_USER}
+ARI_PASSWORD=${ARI_PASS}
+ARI_APP_NAME=dialer
+
+# MySQL Database Configuration
+DB_HOST=127.0.0.1
+DB_USER=${DB_USER}
+DB_PASSWORD=${DB_PASS}
+DB_NAME=${DB_NAME}
+
+# Application Settings
+DEBUG_MODE=true
+LOG_LEVEL=debug
+RECORDINGS_PATH=/var/spool/asterisk/monitor/adial
+SOUNDS_PATH=/var/lib/asterisk/sounds/dialer
+EOF
+        chmod 600 "${INSTALL_DIR}/stasis-app/.env"
+        print_success "Stasis app .env file created with complete configuration"
+    else
+        print_warning "Stasis app directory not found at ${INSTALL_DIR}/stasis-app"
+    fi
+
+    # Update ARI configuration in application files
+    print_info "Updating ARI configuration in application files..."
+    if [ -f "${INSTALL_DIR}/application/config/ari.php" ]; then
+        sed -i "s/\$config\['ari_username'\] = '[^']*';/\$config['ari_username'] = '${ARI_USER}';/g" "${INSTALL_DIR}/application/config/ari.php"
+        sed -i "s/\$config\['ari_password'\] = '[^']*';/\$config['ari_password'] = '${ARI_PASS}';/g" "${INSTALL_DIR}/application/config/ari.php"
+        print_success "ARI configuration updated in application/config/ari.php"
+    else
+        print_warning "ARI config file not found at ${INSTALL_DIR}/application/config/ari.php"
+    fi
+
+    # Check if Asterisk is installed before configuring it
     if ! command -v asterisk &> /dev/null; then
-        print_warning "Asterisk not installed, skipping configuration"
+        print_warning "Asterisk not installed, skipping Asterisk ARI configuration"
+        print_info "The .env file has been created. Install Asterisk and configure ARI manually."
+        echo ""
         return
     fi
 
@@ -654,45 +703,6 @@ EOF
         systemctl restart asterisk 2>/dev/null || asterisk -rx "core reload" 2>/dev/null || true
 
         print_success "Asterisk ARI configured"
-    fi
-
-    # Update ARI configuration immediately after ARI user is created in Asterisk
-    # This ensures the application and stasis-app can connect to Asterisk ARI
-    print_info "Updating ARI configuration in application files..."
-    if [ -f "${INSTALL_DIR}/application/config/ari.php" ]; then
-        sed -i "s/\$config\['ari_username'\] = '[^']*';/\$config['ari_username'] = '${ARI_USER}';/g" "${INSTALL_DIR}/application/config/ari.php"
-        sed -i "s/\$config\['ari_password'\] = '[^']*';/\$config['ari_password'] = '${ARI_PASS}';/g" "${INSTALL_DIR}/application/config/ari.php"
-        print_success "ARI configuration updated in application/config/ari.php"
-    else
-        print_warning "ARI config file not found at ${INSTALL_DIR}/application/config/ari.php"
-    fi
-
-    # Generate complete stasis-app .env file with all credentials
-    if [ -d "${INSTALL_DIR}/stasis-app" ]; then
-        cat > "${INSTALL_DIR}/stasis-app/.env" << EOF
-# Asterisk ARI Configuration
-ARI_HOST=127.0.0.1
-ARI_PORT=8088
-ARI_USERNAME=${ARI_USER}
-ARI_PASSWORD=${ARI_PASS}
-ARI_APP_NAME=dialer
-
-# MySQL Database Configuration
-DB_HOST=127.0.0.1
-DB_USER=${DB_USER}
-DB_PASSWORD=${DB_PASS}
-DB_NAME=${DB_NAME}
-
-# Application Settings
-DEBUG_MODE=true
-LOG_LEVEL=debug
-RECORDINGS_PATH=/var/spool/asterisk/monitor/adial
-SOUNDS_PATH=/var/lib/asterisk/sounds/dialer
-EOF
-        chmod 600 "${INSTALL_DIR}/stasis-app/.env"
-        print_success "Stasis app .env file created with complete configuration"
-    else
-        print_warning "Stasis app directory not found at ${INSTALL_DIR}/stasis-app"
     fi
 
     echo ""
