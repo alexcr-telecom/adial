@@ -220,7 +220,7 @@ CREATE TABLE `users` (
 --
 
 INSERT INTO `users` (`id`, `username`, `password`, `email`, `full_name`, `role`, `is_active`, `api_access`, `created_at`, `updated_at`) VALUES
-(1, 'admin', '$2y$10$92IXUNpkjO0rOQ5byMi.Ye4oKoEa3Ro9llC/.og/at2.uheWG/igi', 'admin@localhost', 'Administrator', 'admin', 1, 1, NOW(), NOW());
+(1, 'admin', '$2y$10$oR5Dcs4NJMByGLwuxHwF3uoLxBspqSfjm1E0zDJwxGRmbtXojWM96', 'admin@localhost', 'Administrator', 'admin', 1, 1, NOW(), NOW());
 
 --
 -- Table structure for table `api_tokens`
