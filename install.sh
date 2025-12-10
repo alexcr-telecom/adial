@@ -19,6 +19,7 @@ INSTALL_DIR="/var/www/html/adial"
 DB_NAME="adialer"
 DB_USER="adialer_user"
 DB_PASS=""
+MYSQL_ROOT_PASS=""
 ASTERISK_SOUNDS_DIR="/var/lib/asterisk/sounds/dialer"
 RECORDINGS_DIR="/var/spool/asterisk/monitor"
 ARI_USER="dialer"
@@ -85,6 +86,51 @@ detect_os() {
 
 generate_password() {
     openssl rand -base64 16 | tr -dc 'a-zA-Z0-9' | head -c 16
+}
+
+prompt_mysql_password() {
+    print_header "MySQL Root Password"
+
+    # Try to connect without password first
+    if mysql -u root -e "SELECT 1;" &>/dev/null; then
+        print_success "MySQL root has no password set"
+        MYSQL_ROOT_PASS=""
+        return 0
+    fi
+
+    # Password is required, prompt for it
+    print_info "MySQL root password is required"
+    echo ""
+
+    local attempts=0
+    while [ $attempts -lt 3 ]; do
+        read -sp "Enter MySQL root password: " MYSQL_ROOT_PASS
+        echo ""
+
+        # Test the password
+        if mysql -u root -p"$MYSQL_ROOT_PASS" -e "SELECT 1;" &>/dev/null; then
+            print_success "MySQL root password verified"
+            echo ""
+            return 0
+        else
+            attempts=$((attempts + 1))
+            if [ $attempts -lt 3 ]; then
+                print_error "Invalid password. Please try again. (Attempt $attempts/3)"
+            fi
+        fi
+    done
+
+    print_error "Failed to authenticate with MySQL after 3 attempts"
+    exit 1
+}
+
+mysql_cmd() {
+    # Execute MySQL command with root password if set
+    if [ -z "$MYSQL_ROOT_PASS" ]; then
+        mysql -u root "$@"
+    else
+        mysql -u root -p"$MYSQL_ROOT_PASS" "$@"
+    fi
 }
 
 ################################################################################
@@ -297,19 +343,19 @@ setup_database() {
     # Create database and user
     print_info "Creating database '$DB_NAME' and user '$DB_USER'..."
 
-    mysql -e "CREATE DATABASE IF NOT EXISTS \`${DB_NAME}\` DEFAULT CHARACTER SET utf8 COLLATE utf8_general_ci;" 2>/dev/null || {
+    mysql_cmd -e "CREATE DATABASE IF NOT EXISTS \`${DB_NAME}\` DEFAULT CHARACTER SET utf8 COLLATE utf8_general_ci;" 2>/dev/null || {
         print_error "Failed to create database"
         exit 1
     }
 
-    mysql -e "CREATE USER IF NOT EXISTS '${DB_USER}'@'localhost' IDENTIFIED BY '${DB_PASS}';" 2>/dev/null
-    mysql -e "GRANT ALL PRIVILEGES ON \`${DB_NAME}\`.* TO '${DB_USER}'@'localhost';" 2>/dev/null
-    mysql -e "FLUSH PRIVILEGES;" 2>/dev/null
+    mysql_cmd -e "CREATE USER IF NOT EXISTS '${DB_USER}'@'localhost' IDENTIFIED BY '${DB_PASS}';" 2>/dev/null
+    mysql_cmd -e "GRANT ALL PRIVILEGES ON \`${DB_NAME}\`.* TO '${DB_USER}'@'localhost';" 2>/dev/null
+    mysql_cmd -e "FLUSH PRIVILEGES;" 2>/dev/null
 
     # Import database schema
     if [ -f "${INSTALL_DIR}/database_schema.sql" ]; then
         print_info "Importing database schema..."
-        mysql "$DB_NAME" < "${INSTALL_DIR}/database_schema.sql"
+        mysql_cmd "$DB_NAME" < "${INSTALL_DIR}/database_schema.sql"
         print_success "Database schema imported"
     else
         print_warning "Database schema file not found"
@@ -840,6 +886,7 @@ main() {
     # Installation steps
     install_dependencies
     install_asterisk
+    prompt_mysql_password
     setup_database
     setup_directories
     configure_application
