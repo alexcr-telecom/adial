@@ -75,3 +75,6 @@ $lang['ivr_no_menus'] = 'IVR меню не найдены. Создайте св
 $lang['ivr_confirm_delete'] = 'Вы уверены, что хотите удалить это IVR меню? Это действие необратимо.';
 $lang['ivr_audio_required'] = 'Аудио файл обязателен';
 $lang['ivr_at_least_one_action'] = 'Требуется хотя бы одно действие';
+$lang['ivr_error_duplicate_dtmf'] = 'Обнаружена дублирующая DTMF цифра';
+$lang['ivr_error_duplicate_dtmf_help'] = 'Каждая DTMF цифра может использоваться только один раз в IVR меню. Пожалуйста, удалите или измените дублирующую цифру.';
+$lang['ivr_help_queue_number'] = 'Введите только номер очереди';

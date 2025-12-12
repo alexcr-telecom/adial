@@ -75,3 +75,6 @@ $lang['ivr_no_menus'] = 'No IVR menus found. Create your first IVR menu!';
 $lang['ivr_confirm_delete'] = 'Are you sure you want to delete this IVR menu? This action cannot be undone.';
 $lang['ivr_audio_required'] = 'Audio file is required';
 $lang['ivr_at_least_one_action'] = 'At least one action is required';
+$lang['ivr_error_duplicate_dtmf'] = 'Duplicate DTMF digit detected';
+$lang['ivr_error_duplicate_dtmf_help'] = 'Each DTMF digit can only be used once in an IVR menu. Please remove or change the duplicate digit.';
+$lang['ivr_help_queue_number'] = 'Enter queue number only';

@@ -106,6 +106,9 @@
                                                 <input type="text" class="form-control action-value-field" name="action_value[]"
                                                        value="<?php echo htmlspecialchars($action->action_value); ?>"
                                                        placeholder="<?php echo $this->lang->line('ivr_help_action_placeholder'); ?>" <?php echo $action->action_type !== 'hangup' ? 'required' : ''; ?>>
+                                                <small class="form-text text-muted action-queue-help" style="display:none;">
+                                                    Enter queue number only (e.g., 600, 701). System will dial LOCAL/{queue}@from-internal
+                                                </small>
                                             </div>
                                             <div class="col-md-1">
                                                 <label>&nbsp;</label><br>
@@ -146,6 +149,9 @@
                                             <label><?php echo $this->lang->line('ivr_action_value'); ?></label>
                                             <input type="text" class="form-control action-value-field" name="action_value[]"
                                                    placeholder="<?php echo $this->lang->line('ivr_help_action_placeholder'); ?>">
+                                            <small class="form-text text-muted action-queue-help" style="display:none;">
+                                                Enter queue number only (e.g., 600, 701). System will dial LOCAL/{queue}@from-internal
+                                            </small>
                                         </div>
                                         <div class="col-md-1">
                                             <label>&nbsp;</label><br>
@@ -185,6 +191,9 @@
                                             <label><?php echo $this->lang->line('ivr_action_value'); ?></label>
                                             <input type="text" class="form-control action-value-field" name="action_value[]"
                                                    placeholder="<?php echo $this->lang->line('ivr_help_action_placeholder'); ?>">
+                                            <small class="form-text text-muted action-queue-help" style="display:none;">
+                                                Enter queue number only (e.g., 600, 701). System will dial LOCAL/{queue}@from-internal
+                                            </small>
                                         </div>
                                         <div class="col-md-1">
                                             <label>&nbsp;</label><br>
@@ -287,19 +296,53 @@ $(document).ready(function() {
         var $actionRow = $(this).closest('.action-row');
         var $actionValueContainer = $actionRow.find('.action-value-container');
         var $actionValueField = $actionRow.find('.action-value-field');
+        var $queueHelp = $actionRow.find('.action-queue-help');
 
         if (actionType === 'hangup') {
             $actionValueContainer.hide();
             $actionValueField.prop('required', false).val('');
+            $queueHelp.hide();
         } else {
             $actionValueContainer.show();
             $actionValueField.prop('required', true);
+
+            // Show queue help text only for queue action
+            if (actionType === 'queue') {
+                $queueHelp.show();
+            } else {
+                $queueHelp.hide();
+            }
         }
     });
 
     // Trigger on page load for existing rows
     $('.action-type').each(function() {
         $(this).trigger('change');
+    });
+
+    // Form validation - check for duplicate DTMF digits
+    $('#ivrForm').submit(function(e) {
+        var dtmfDigits = [];
+        var hasDuplicate = false;
+        var duplicateDigit = '';
+
+        $('select[name="dtmf_digit[]"]').each(function() {
+            var digit = $(this).val();
+            if (digit && dtmfDigits.includes(digit)) {
+                hasDuplicate = true;
+                duplicateDigit = digit;
+                return false;
+            }
+            if (digit) {
+                dtmfDigits.push(digit);
+            }
+        });
+
+        if (hasDuplicate) {
+            e.preventDefault();
+            alert('<?php echo $this->lang->line('ivr_error_duplicate_dtmf'); ?>: ' + duplicateDigit + '\n<?php echo $this->lang->line('ivr_error_duplicate_dtmf_help'); ?>');
+            return false;
+        }
     });
 });
 </script>

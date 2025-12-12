@@ -252,21 +252,48 @@ class Ivr extends MY_Controller {
         $action_values = $this->input->post('action_value');
 
         if (empty($dtmf_digits)) {
-            return;
+            return true;
         }
+
+        $saved_count = 0;
+        $errors = array();
 
         foreach ($dtmf_digits as $index => $digit) {
             if (!empty($digit)) {
+                // For hangup actions, action_value can be empty
+                $action_value = isset($action_values[$index]) ? $action_values[$index] : '';
+                if ($action_types[$index] === 'hangup') {
+                    $action_value = '';
+                }
+
                 $action_data = array(
                     'ivr_menu_id' => $ivr_menu_id,
                     'dtmf_digit' => $digit,
                     'action_type' => $action_types[$index],
-                    'action_value' => $action_values[$index]
+                    'action_value' => $action_value
                 );
 
-                $this->Ivr_action_model->create($action_data);
+                try {
+                    $result = $this->Ivr_action_model->create($action_data);
+                    if ($result) {
+                        $saved_count++;
+                    } else {
+                        $errors[] = "Failed to save action for DTMF digit: $digit";
+                        log_message('error', "Failed to save IVR action for menu $ivr_menu_id, digit $digit");
+                    }
+                } catch (Exception $e) {
+                    $errors[] = "Error saving action for DTMF digit $digit: " . $e->getMessage();
+                    log_message('error', "Exception saving IVR action for menu $ivr_menu_id, digit $digit: " . $e->getMessage());
+                }
             }
         }
+
+        if (!empty($errors)) {
+            $this->session->set_flashdata('warning', 'Some actions could not be saved: ' . implode('; ', $errors));
+            return false;
+        }
+
+        return true;
     }
 
     /**
