@@ -41,7 +41,7 @@
                         <div class="form-group">
                             <label for="retry_delay"><?php echo $this->lang->line('campaigns_retry_delay'); ?></label>
                             <input type="number" class="form-control" id="retry_delay" name="retry_delay"
-                                   value="<?php echo isset($campaign) ? $campaign->retry_delay : 300; ?>" min="60">
+                                   value="<?php echo isset($campaign) ? $campaign->retry_delay : 300; ?>" min="1">
                         </div>
 
                         <div class="form-group">
