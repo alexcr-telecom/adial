@@ -84,14 +84,23 @@ DB_PASSWORD=$(openssl rand -base64 16)
 
 # Create database and user
 echo "Creating database and user..."
+
+# Create database
 mysql -u root -p"$MYSQL_ROOT_PASS" <<EOF
 CREATE DATABASE IF NOT EXISTS adialer CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci;
-CREATE USER IF NOT EXISTS 'adialer_user'@'localhost' IDENTIFIED BY '$DB_PASSWORD';
+EOF
+
+# Drop user if exists (ignore errors for compatibility with older versions)
+mysql -u root -p"$MYSQL_ROOT_PASS" -e "DROP USER 'adialer_user'@'localhost'" 2>/dev/null || true
+
+# Create user (compatible with all MySQL/MariaDB versions)
+mysql -u root -p"$MYSQL_ROOT_PASS" <<EOF
+CREATE USER 'adialer_user'@'localhost' IDENTIFIED BY '$DB_PASSWORD';
 GRANT ALL PRIVILEGES ON adialer.* TO 'adialer_user'@'localhost';
 FLUSH PRIVILEGES;
 EOF
 
-echo -e "${GREEN}✓ Database created${NC}"
+echo -e "${GREEN}✓ Database and user created${NC}"
 
 # Import database schema
 if [ -f "$INSTALL_DIR/database/schema.sql" ]; then
