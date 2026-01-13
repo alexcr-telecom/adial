@@ -1,9 +1,9 @@
 #!/bin/bash
 
-# Asterisk ARI Dialer - Startup Script
+# A-Dial AMI Dialer - Startup Script
 
 echo "================================"
-echo "Asterisk ARI Dialer Startup"
+echo "A-Dial AMI Dialer Startup"
 echo "================================"
 echo ""
 
@@ -31,6 +31,7 @@ if systemctl is-active --quiet asterisk; then
 else
     echo "✗ Asterisk is not running. Starting..."
     systemctl start asterisk
+    sleep 2
 fi
 
 # Check Apache/Httpd
@@ -43,54 +44,85 @@ else
     systemctl start httpd || systemctl start apache2
 fi
 
-# Check if Node.js is installed
+# Check PHP
 echo ""
-echo "Checking Node.js..."
-if command -v node &> /dev/null; then
-    echo "✓ Node.js is installed ($(node --version))"
+echo "Checking PHP..."
+if command -v php &> /dev/null; then
+    echo "✓ PHP is installed ($(php -v | head -n 1 | cut -d ' ' -f 2))"
 else
-    echo "✗ Node.js is not installed"
+    echo "✗ PHP is not installed"
     exit 1
 fi
 
-# Check if Stasis app is already running
+# Check AMI connection
 echo ""
-echo "Checking Stasis Application..."
-if systemctl is-active --quiet ari-dialer; then
-    echo "✓ Stasis application is already running"
-    echo "  To restart: systemctl restart ari-dialer"
+echo "Checking AMI..."
+if asterisk -rx "manager show connected" &> /dev/null; then
+    echo "✓ AMI is accessible"
 else
-    echo "✗ Stasis application is not running. Starting..."
-    cd /var/www/html/adial/stasis-app
+    echo "✗ AMI is not accessible"
+    exit 1
+fi
 
-    # Check if dependencies are installed
-    if [ ! -d "node_modules" ]; then
-        echo "  Installing Node.js dependencies..."
-        npm install
+# Start AMI Daemon
+echo ""
+echo "Checking AMI Daemon..."
+if systemctl is-active --quiet adial-ami; then
+    echo "✓ AMI daemon is already running"
+    echo "  To restart: systemctl restart adial-ami"
+else
+    echo "✗ AMI daemon is not running. Starting..."
+
+    # Check if daemon files exist
+    if [ ! -f "/var/www/html/adial/ami-daemon/daemon.php" ]; then
+        echo "✗ Daemon files not found. Run install-freepbx.sh first"
+        exit 1
     fi
 
-    # Start Stasis app via systemd
-    systemctl start ari-dialer
+    # Start daemon
+    systemctl start adial-ami
     sleep 2
 
     # Check if it's running
-    if systemctl is-active --quiet ari-dialer; then
-        echo "✓ Stasis application is running"
+    if systemctl is-active --quiet adial-ami; then
+        echo "✓ AMI daemon started successfully"
     else
-        echo "✗ Stasis application failed to start. Check logs:"
-        echo "  journalctl -u ari-dialer -n 50"
-        echo "  or: tail -f /var/www/html/adial/logs/stasis-combined.log"
+        echo "✗ AMI daemon failed to start. Check logs:"
+        echo "  systemctl status adial-ami"
+        echo "  tail -f /var/www/html/adial/logs/ami-daemon.log"
         exit 1
     fi
+fi
+
+# Check dialplan
+echo ""
+echo "Checking Dialplan..."
+if [ -f "/etc/asterisk/extensions_dialer.conf" ]; then
+    echo "✓ Dialplan file exists"
+
+    # Check if loaded in Asterisk
+    if asterisk -rx "dialplan show dialer-origination" | grep -q "NoOp"; then
+        echo "✓ Dialplan loaded in Asterisk"
+    else
+        echo "⚠ Dialplan not loaded, reloading..."
+        asterisk -rx "dialplan reload" > /dev/null
+        sleep 1
+        echo "✓ Dialplan reloaded"
+    fi
+else
+    echo "⚠ Dialplan not generated yet"
+    echo "  Run: php /var/www/html/adial/test-dialplan-generator.php"
 fi
 
 # Check permissions
 echo ""
 echo "Checking directory permissions..."
-chmod -R 777 /var/www/html/adial/uploads 2>/dev/null
-chmod -R 777 /var/www/html/adial/logs 2>/dev/null
-chmod -R 777 /var/www/html/adial/recordings 2>/dev/null
-chmod -R 777 /var/lib/asterisk/sounds/dialer 2>/dev/null
+chmod -R 755 /var/www/html/adial/logs 2>/dev/null
+chmod -R 755 /var/www/html/adial/uploads 2>/dev/null
+chown -R apache:apache /var/www/html/adial/logs 2>/dev/null
+chown -R apache:apache /var/www/html/adial/uploads 2>/dev/null
+chown -R asterisk:asterisk /var/lib/asterisk/sounds/dialer 2>/dev/null
+chown -R asterisk:asterisk /var/spool/asterisk/monitor/adial 2>/dev/null
 echo "✓ Permissions set"
 
 # Display status summary
@@ -103,22 +135,29 @@ echo "Services:"
 echo "  • MySQL:       $(systemctl is-active mariadb mysql 2>/dev/null | grep active | head -1 || echo 'inactive')"
 echo "  • Asterisk:    $(systemctl is-active asterisk 2>/dev/null || echo 'inactive')"
 echo "  • Web Server:  $(systemctl is-active httpd apache2 2>/dev/null | grep active | head -1 || echo 'inactive')"
-echo "  • Stasis App:  $(systemctl is-active ari-dialer 2>/dev/null || echo 'inactive')"
+echo "  • AMI Daemon:  $(systemctl is-active adial-ami 2>/dev/null || echo 'inactive')"
+echo ""
+echo "AMI Connections:"
+asterisk -rx "manager show connected" | grep -E "Username|dialer" | head -5
+echo ""
+echo "Active Campaigns:"
+CAMPAIGN_COUNT=$(mysql -u adialer_user -piCyrq0ghonj2sWzD adialer -sN -e "SELECT COUNT(*) FROM campaigns WHERE status='running'" 2>/dev/null || echo "?")
+echo "  • Running: $CAMPAIGN_COUNT"
 echo ""
 echo "Web Interface:"
 echo "  URL: http://$(hostname -I | awk '{print $1}')/adial"
 echo "  or   http://localhost/adial"
 echo ""
 echo "Logs:"
-echo "  Web:     /var/www/html/adial/logs/"
-echo "  Stasis:  /var/www/html/adial/logs/stasis-combined.log"
-echo "           journalctl -u ari-dialer -f"
-echo "  Apache:  /var/log/httpd/ or /var/log/apache2/"
+echo "  AMI Daemon: /var/www/html/adial/logs/ami-daemon.log"
+echo "              tail -f /var/www/html/adial/logs/ami-daemon.log"
+echo "  Asterisk:   /var/log/asterisk/full"
+echo "              asterisk -rvvv"
 echo ""
-echo "To manage Stasis app:"
-echo "  systemctl stop ari-dialer"
-echo "  systemctl restart ari-dialer"
-echo "  systemctl enable ari-dialer   (auto-start on boot)"
+echo "To manage AMI daemon:"
+echo "  systemctl status adial-ami"
+echo "  systemctl stop adial-ami"
+echo "  systemctl restart adial-ami"
 echo ""
 echo "================================"
 echo "System is ready!"

@@ -1,658 +1,363 @@
-# ARI Dialer
+# A-Dial - AMI Predictive Dialer for FreePBX
 
-![Version](https://img.shields.io/badge/version-1.0.0-blue.svg)
-![License](https://img.shields.io/badge/license-Proprietary-red.svg)
-![Asterisk](https://img.shields.io/badge/asterisk-16%2B-green.svg)
-![PHP](https://img.shields.io/badge/php-7.2%2B-purple.svg)
-![Node.js](https://img.shields.io/badge/node.js-14%2B-brightgreen.svg)
+A powerful, open-source predictive dialer for FreePBX/Asterisk using AMI (Asterisk Manager Interface) with dialplan-based IVR routing.
 
-A powerful, feature-rich auto-dialer system built on Asterisk's REST Interface (ARI). Perfect for outbound calling campaigns, customer surveys, appointment reminders, and emergency notifications.
+## Features
 
-## ✨ Key Features
+- **Campaign Management**: Create and manage multiple concurrent campaigns
+- **IVR Support**: Interactive voice response menus with DTMF routing
+- **Queue Integration**: Transfer calls to FreePBX queues
+- **Extension Transfer**: Direct transfer to SIP/PJSIP extensions
+- **Call Recording**: Automatic recording of all calls
+- **Concurrent Call Control**: Limit simultaneous calls per campaign
+- **Retry Logic**: Automatic retry for failed/unanswered calls
+- **CDR Integration**: Native Asterisk CDR with campaign filtering
+- **Real-time Monitoring**: Live campaign status and call tracking
+- **Web Interface**: Easy-to-use web-based management
 
-### 📞 Campaign Management
-- **Multiple concurrent campaigns** with independent configurations
-- **Flexible routing** - PJSIP, SIP, or custom dial strings
-- **Smart retry logic** with configurable attempts and delays
-- **Real-time control** - Start, Stop, Pause campaigns on-the-fly
-- **Bulk number import** via CSV with custom data fields
-- **Live progress tracking** with detailed statistics
+## Architecture
 
-#### ✅ **Verified Campaign Control Logic:**
-- **🛑 STOP Campaign:** Resets all numbers to 'pending', hangs up active calls
-- **⏸️ PAUSE Campaign:** Preserves number states, keeps active calls running
-- **▶️ START/RESUME:** Continues from current state, no number reset
+### AMI-Based Design
+- **PHP AMI Daemon**: Manages campaign processing and call origination
+- **Dialplan Generation**: Auto-generates Asterisk dialplan from database
+- **Event-Driven**: Uses AMI events for real-time call tracking
+- **Native CDR**: Integrates with Asterisk's built-in CDR system
 
-### 🎙️ Interactive Voice Response (IVR)
-- **Multi-level IVR menus** with unlimited nesting
-- **DTMF detection** with 14 possible inputs (0-9, *, #, i, t)
-- **Flexible actions** - Transfer, Queue, Hangup, Playback, Chain IVRs
-- **Audio management** - Upload WAV/MP3, automatic conversion to Asterisk format
-- **Professional menus** for customer self-service
+### Technology Stack
+- PHP 7.4+
+- MySQL/MariaDB 5.7+
+- Asterisk 13+ with AMI
+- FreePBX 14+
+- CodeIgniter 3.x
 
-### 📊 Reporting & Analytics
-- **Comprehensive CDR** - Complete call history with disposition tracking
-- **Advanced filtering** - By campaign, date range, status, phone number
-- **Export capabilities** - CSV export for external analysis
-- **Real-time statistics** - Answer rates, talk time, call volume
-- **Visual dashboards** - Quick overview of system performance
+## Requirements
 
-### 🎯 Real-Time Monitoring
-- **Live channel tracking** - See all active calls
-- **Campaign progress** - Real-time updates every 3 seconds
-- **System health** - Service status, resource utilization
-- **Today's metrics** - Calls, answer rate, average duration
+### System Requirements
+- CentOS 7/8 or Rocky Linux 8
+- FreePBX 14+ installed and configured
+- Asterisk 13+ (included with FreePBX)
+- MySQL/MariaDB 5.7+
+- PHP 7.4+ with extensions: mysqli, pdo, mbstring, json
+- 2GB RAM minimum
+- 20GB disk space
 
-### 🔊 Call Recording
-- **Dual-channel recording** - Record both agent and customer
-- **Stereo mixing** - Combine channels into single file
-- **Web playback** - Listen directly from browser
-- **Download & archive** - Save recordings for compliance
-- **Format options** - WAV or MP3
+### FreePBX Requirements
+- Active SIP/PJSIP trunks configured
+- AMI access enabled
+- Extensions/Queues configured (for IVR routing)
 
-### 🌐 Multi-Language Support
-- **English** - Full support
-- **Russian** - Полная поддержка
-- **Easy expansion** - Add new languages via language files
-- **Per-user preference** - Language switcher in top-right corner
+## Installation
 
-### 🛠️ Technical Features
-- **RESTful API** - Programmatic access to all features
-- **Responsive UI** - Bootstrap 4 mobile-friendly interface
-- **Systemd integration** - Proper service management
-- **Comprehensive logging** - Debug and audit trails
-- **Security hardening** - Best practices implemented
-
-## 📋 System Requirements
-
-### Minimum Requirements
-- **OS:** CentOS 7+, RHEL 7+, Ubuntu 18.04+, Debian 9+
-- **CPU:** 2 cores
-- **RAM:** 2 GB
-- **Disk:** 10 GB free space
-- **Asterisk:** 16+ with ARI enabled
-- **PHP:** 7.2+ with extensions (mysqli, json, mbstring, xml, gd, curl)
-- **Database:** MariaDB 10.2+ or MySQL 5.7+
-- **Node.js:** 14 LTS or higher
-- **Tools:** FFmpeg or SoX for audio conversion
-
-### Recommended for Production
-- **CPU:** 4+ cores
-- **RAM:** 4+ GB
-- **Disk:** 20+ GB SSD (for recordings)
-- **Network:** Dedicated 100 Mbps+ connection
-
-### Concurrent Call Capacity
-- **5-10 calls** - Basic server
-- **50-100 calls** - Recommended server (4 cores, 4GB RAM)
-- **100-500 calls** - High-performance server (8+ cores, 16+ GB RAM)
-
-## 🚀 Quick Start
-
-### System Status ✅ READY
-
-**Current Configuration Status:**
-- ✅ **MySQL:** Configured and accessible (root/mahapharata)
-- ✅ **Asterisk:** Running with ARI enabled on port 8088
-- ✅ **Node.js Stasis:** Running and processing campaigns
-- ✅ **Web Interface:** Accessible via Apache
-- ✅ **Campaign Logic:** Stop/Pause/Resume functionality working correctly
-
-### Access the System
-
-```
-Web Interface: http://YOUR_SERVER_IP/adial
-Language: EN/RU (top-right corner)
-```
-
-**Default Credentials:**
-- Username: `admin`
-- Password: `admin`
-
-⚠️ **Change default password immediately after login!**
-
-### Installation Status
-
-The system is currently **fully operational**. For new installations, see **[INSTALL.md](INSTALL.md)** for complete setup instructions.
-
-## 📚 Documentation
-
-| Document | Description |
-|----------|-------------|
-| **[INSTALL.md](INSTALL.md)** | Complete installation guide (automated + manual) |
-| **[QUICKSTART.md](QUICKSTART.md)** | 5-minute quick start guide |
-| **[USER_MANUAL.md](USER_MANUAL.md)** | Comprehensive user guide with examples |
-| **[ADMIN_GUIDE.md](ADMIN_GUIDE.md)** | System administration and maintenance |
-| **[FAQ.md](FAQ.md)** | Frequently asked questions |
-| **[TROUBLESHOOTING.md](TROUBLESHOOTING.md)** | Common issues and solutions |
-| **[FEATURES.md](FEATURES.md)** | Detailed feature descriptions |
-
-## 🎓 Usage Examples
-
-### Example 1: Simple Sales Campaign
+### Automatic Installation (Recommended)
 
 ```bash
-# 1. Create campaign via web interface
-Name: "November Sales"
-Trunk: PJSIP/sales-trunk
-Destination: PJSIP/100 (sales agent)
-Concurrent Calls: 5
+# Navigate to installation directory
+cd /var/www/html/adial
 
-# 2. Upload phone numbers (CSV)
-+12125551001
-+12125551002
-+12125551003
+# Make installer executable
+chmod +x install-freepbx.sh
 
-# 3. Start campaign
-Click "Play" button → Monitor in real-time
+# Run installer as root
+./install-freepbx.sh
 ```
 
-### Example 2: Customer Survey with IVR
+The installer will:
+1. Check system requirements
+2. Create database and user
+3. Configure AMI access
+4. Set up dialplan includes
+5. Create directories and set permissions
+6. Generate configuration files
+7. Install systemd service
+8. Start the AMI daemon
 
-```bash
-# 1. Create IVR menu
-Name: "Satisfaction Survey"
-Audio: "Rate your experience: Press 1-5"
-Actions:
-  1 → Playback "thank-you"
-  2 → Playback "thank-you"
-  ...
+### Manual Installation
 
-# 2. Create campaign
-Name: "Monthly Survey"
-Destination: IVR Menu → "Satisfaction Survey"
+If you prefer manual installation, see [MANUAL_INSTALL.md](MANUAL_INSTALL.md)
 
-# 3. Upload customers
-# 4. Start campaign
-```
+## Quick Start
 
-### Example 3: Appointment Reminders
+### 1. Access Web Interface
 
-```bash
-# IVR: "You have an appointment tomorrow. Press 1 to confirm."
-# Campaign connects to IVR
-# Automated calls 24 hours before appointment
-```
+After installation, access the web interface:
 
-See **[USER_MANUAL.md](USER_MANUAL.md)** for more examples!
-
-## 💻 Manual Installation
-
-For manual installation or custom setups, see **[INSTALL.md](INSTALL.md)** for step-by-step instructions covering:
-
-- Dependency installation per OS
-- Database setup
-- Asterisk configuration
-
-### 2. Asterisk Configuration
-
-Create ARI user in `/etc/asterisk/ari.conf`:
-
-```ini
-[dialer]
-type=user
-password=76e6d233237c5323b9bb71860e322b61
-read_only=no
-```
-
-Reload Asterisk:
-
-```bash
-asterisk -rx "module reload res_ari.so"
-```
-
-### 3. Start the Stasis Application
-
-```bash
-cd /var/www/html/adial/stasis-app
-npm install  # Already done
-node app.js
-```
-
-Or use PM2 for production:
-
-```bash
-npm install -g pm2
-pm2 start app.js --name "ari-dialer"
-pm2 save
-pm2 startup
-```
-
-### 4. Configure Web Server
-
-For Apache, the `.htaccess` file is already configured. Ensure `mod_rewrite` is enabled:
-
-```bash
-a2enmod rewrite
-systemctl restart httpd
-```
-
-### 5. Set Permissions
-
-```bash
-chmod -R 777 /var/www/html/adial/uploads
-chmod -R 777 /var/www/html/adial/logs
-chmod -R 777 /var/www/html/adial/recordings
-chmod -R 777 /var/lib/asterisk/sounds/dialer
-```
-
-## Usage
-
-### Accessing the Web Interface
-
-Open your browser and navigate to:
 ```
 http://your-server-ip/adial
 ```
 
-### Creating a Campaign
+Default credentials (if configured):
+- Username: admin
+- Password: (set during installation)
 
-1. Go to **Campaigns** → **New Campaign**
-2. Fill in campaign details:
-   - **Name**: Campaign identifier
-   - **Description**: Optional description
-   - **Trunk Configuration**:
-     - Custom: `Local/${EXTEN}@from-internal`
-     - PJSIP: Select from available trunks
-     - SIP: Select from available trunks
-   - **Caller ID**: Outbound caller ID
-   - **Agent Destination**:
-     - Custom: `PJSIP/100` or `Local/100@from-internal`
-     - Extension: Select from endpoints
-     - IVR: Configure IVR menu separately
-   - **Recording**: Enable to record both channels
-   - **Concurrent Calls**: Max simultaneous calls
-   - **Retry Settings**: Configure retry attempts and delay
+### 2. Configure Trunk
 
-3. Click **Create Campaign**
+1. Go to **Settings** → **Trunks**
+2. Add your FreePBX trunk details:
+   - Trunk Type: SIP or PJSIP
+   - Trunk Name: (your FreePBX trunk name, e.g., "trunk1")
 
-### Adding Numbers to Campaign
+### 3. Create IVR Menu (Optional)
 
-1. View the campaign details
-2. Upload CSV file with phone numbers (one per line)
-3. Or add numbers manually
+1. Go to **IVR Menus** → **Add New**
+2. Upload audio file (WAV or MP3)
+3. Configure DTMF actions:
+   - Press 1: Transfer to Extension 100
+   - Press 2: Transfer to Queue "support"
+   - Press 9: Hangup
 
-### Starting a Campaign
+### 4. Create Campaign
 
-1. Go to **Campaigns**
-2. Click the **Play** button to start the campaign
-3. Monitor progress in real-time on the **Monitoring** page
+1. Go to **Campaigns** → **Add New**
+2. Configure campaign:
+   - Name: "Test Campaign"
+   - Trunk: Select configured trunk
+   - Caller ID: Your outbound caller ID
+   - Agent Destination: IVR Menu or Queue
+   - Concurrent Calls: 5
+3. Import phone numbers (CSV format)
+4. Start campaign
 
-### Creating IVR Menus
+### 5. Monitor Campaign
 
-1. Go to **IVR** → **New IVR Menu**
-2. Select campaign
-3. Upload audio file (WAV or MP3) - will be auto-converted
-4. Configure DTMF actions:
-   - **Press 1**: Call Extension (PJSIP/100)
-   - **Press 2**: Add to Queue (sales)
-   - **Press 3**: Hangup
-   - **Press 0**: Playback message
-
-### Viewing Call Records
-
-1. Go to **CDR**
-2. Filter by campaign, date, or disposition
-3. Play or download recordings
-4. Export to CSV
-
-### Real-time Monitoring
-
-1. Go to **Monitoring**
-2. View:
-   - Today's call statistics
-   - Active campaigns with progress
-   - Active channels
-   - Answer rates and average talk time
+1. Go to **Campaigns** → **View**
+2. Monitor real-time statistics:
+   - Active calls
+   - Answered/Failed/Pending
+   - Call recordings
 
 ## Configuration
 
-### 🔧 Current Working Configuration
+### Campaign Settings
 
-**ARI Settings** (`/var/www/html/adial/application/config/ari.php`):
+- **Concurrent Calls**: Maximum simultaneous calls
+- **Retry Times**: Number of retry attempts
+- **Retry Delay**: Seconds between retries
+- **Dial Timeout**: Maximum ring time
 
-```php
-$config['ari_host'] = 'localhost';
-$config['ari_port'] = '8088';
-$config['ari_username'] = 'dialer';
-$config['ari_password'] = '76e6d233237c5323b9bb71860e322b61';  // REAL PASSWORD
-$config['ari_stasis_app'] = 'dialer';
-$config['ari_ws_url'] = 'ws://localhost:8088/ari/events';
-$config['ari_base_url'] = 'http://localhost:8088/ari';
+### IVR Actions
+
+- **Extension**: Transfer to SIP/PJSIP extension
+- **Queue**: Transfer to FreePBX queue
+- **Goto IVR**: Jump to another IVR menu
+- **Hangup**: End call
+
+### CDR Filtering
+
+Query dialer calls in Asterisk CDR:
+
+```sql
+-- Get all calls for campaign 12
+SELECT * FROM asteriskcdrdb.cdr
+WHERE accountcode = '12'
+ORDER BY calldate DESC;
+
+-- Campaign statistics
+SELECT
+    accountcode as campaign_id,
+    COUNT(*) as total_calls,
+    SUM(CASE WHEN disposition='ANSWERED' THEN 1 ELSE 0 END) as answered,
+    AVG(duration) as avg_duration
+FROM asteriskcdrdb.cdr
+WHERE accountcode != ''
+GROUP BY accountcode;
 ```
 
-**Database Settings** (`/var/www/html/adial/application/config/database.php`):
+## Management
 
-```php
-$db['default'] = array(
-    'hostname' => 'localhost',
-    'username' => 'root',           // REAL USERNAME
-    'password' => 'mahapharata',    // REAL PASSWORD
-    'database' => 'adialer',
-    'dbdriver' => 'mysqli',
-);
-```
+### Daemon Control
 
-**Stasis App Settings** (`/var/www/html/adial/stasis-app/.env`):
-
-```env
-# Asterisk ARI Configuration
-ARI_HOST=localhost
-ARI_PORT=8088
-ARI_USERNAME=dialer
-ARI_PASSWORD=76e6d233237c5323b9bb71860e322b61    # REAL ARI PASSWORD
-ARI_APP_NAME=dialer
-
-# Database Configuration
-DB_HOST=localhost
-DB_USER=root                                     # REAL DB USERNAME
-DB_PASSWORD=mahapharata                          # REAL DB PASSWORD
-DB_NAME=adialer
-
-# Application Settings
-DEBUG_MODE=true
-LOG_LEVEL=info
-```
-
-✅ **These are the REAL working credentials currently configured in the system.**
-
-### ✅ Test Credentials
-
-**Verify Database Access:**
 ```bash
-mysql -u root -pmahapharata -D adialer -e "SHOW TABLES;"
+# Start daemon
+systemctl start adial-ami
+
+# Stop daemon
+systemctl stop adial-ami
+
+# Restart daemon
+systemctl restart adial-ami
+
+# Check status
+systemctl status adial-ami
+
+# View logs
+tail -f /var/www/html/adial/logs/ami-daemon.log
 ```
 
-**Verify ARI Access:**
+### Dialplan Management
+
+Dialplan is auto-generated when IVR menus are created/updated/deleted.
+
+Manual regeneration:
 ```bash
-curl -u dialer:76e6d233237c5323b9bb71860e322b61 "http://localhost:8088/ari/asterisk/info"
+cd /var/www/html/adial
+php test-dialplan-generator.php
 ```
 
-**Check Stasis App Status:**
+View generated dialplan:
 ```bash
-ps aux | grep "node app.js"
-systemctl status ari-dialer
+cat /etc/asterisk/extensions_dialer.conf
 ```
 
-## Directory Structure
-
-```
-/var/www/html/adial/
-├── application/          # CodeIgniter application
-│   ├── controllers/      # Web controllers
-│   ├── models/          # Database models
-│   ├── views/           # HTML views
-│   ├── libraries/       # ARI client library
-│   └── config/          # Configuration files
-├── stasis-app/          # Node.js Stasis application
-│   ├── app.js           # Main application
-│   ├── package.json     # Node dependencies
-│   └── .env             # Environment configuration
-├── recordings/          # Call recordings (MP3)
-├── uploads/             # Temporary file uploads
-├── logs/                # Application logs
-└── public/              # Public assets
-
-/var/lib/asterisk/sounds/dialer/  # IVR audio files
+Validate dialplan:
+```bash
+asterisk -rx "dialplan show dialer-origination"
+asterisk -rx "dialplan show ivr-menu-1"
 ```
 
-## API Endpoints
+### Database Backup
 
-The system provides AJAX endpoints for real-time updates:
+```bash
+# Backup database
+mysqldump -u adialer_user -p adialer > backup.sql
 
-- `GET /dashboard/get_status` - System status
-- `GET /dashboard/get_channels` - Active channels
-- `POST /campaigns/control/{id}/{action}` - Control campaigns
-- `GET /monitoring/get_realtime_data` - Real-time monitoring data
-- `GET /cdr/stats` - CDR statistics
+# Restore database
+mysql -u adialer_user -p adialer < backup.sql
+```
 
 ## Troubleshooting
 
-### Stasis App Not Connecting
+### Daemon Won't Start
 
-1. Check Asterisk ARI configuration:
-   ```bash
-   asterisk -rx "ari show users"
-   ```
+Check logs:
+```bash
+tail -f /var/www/html/adial/logs/ami-daemon.log
+```
 
-2. Verify ARI is listening:
-   ```bash
-   netstat -tulpn | grep 8088
-   ```
-
-3. Check Stasis app logs:
-   ```bash
-   tail -f /var/www/html/adial/logs/stasis-combined.log
-   ```
+Verify AMI connection:
+```bash
+asterisk -rx "manager show connected"
+```
 
 ### Calls Not Originating
 
-1. Check trunk configuration in campaign
-2. Verify endpoint is registered:
-   ```bash
-   asterisk -rx "pjsip show endpoints"
-   ```
+1. Check campaign status: Should be "running"
+2. Verify pending numbers exist
+3. Check concurrent call limits
+4. Review daemon logs for errors
+5. Test trunk: `asterisk -rx "pjsip show endpoints"` or `sip show peers`
 
-### Recordings Not Working
+### IVR Not Playing
 
-1. Verify recording path permissions:
-   ```bash
-   ls -la /var/www/html/adial/recordings
-   ```
+1. Check audio file exists: `ls /var/lib/asterisk/sounds/dialer/`
+2. Verify dialplan generated: `cat /etc/asterisk/extensions_dialer.conf`
+3. Test dialplan: `asterisk -rx "dialplan show ivr-menu-X"`
+4. Check audio format: Should be 8kHz, mono WAV
 
-2. Check if sox/ffmpeg is installed:
-   ```bash
-   which sox
-   which ffmpeg
-   ```
+### CDR Not Recording
 
-3. Check Stasis app logs for recording errors
+1. Verify Asterisk CDR enabled: `asterisk -rx "cdr show status"`
+2. Check ODBC connection: `asterisk -rx "odbc show asteriskcdrdb"`
+3. Review accountcode setting in dialplan
 
-### IVR Audio Not Playing
+### Permissions Issues
 
-1. Verify audio file format:
-   ```bash
-   file /var/lib/asterisk/sounds/dialer/*.wav
-   ```
+```bash
+# Fix file permissions
+chown -R apache:apache /var/www/html/adial
+chown -R asterisk:asterisk /var/www/html/adial/ami-daemon
+chown -R asterisk:asterisk /var/lib/asterisk/sounds/dialer
+chown -R asterisk:asterisk /var/spool/asterisk/monitor/adial
+```
 
-2. Should be: `RIFF (little-endian) data, WAVE audio, 8000 Hz, mono`
-
-3. Manually convert if needed:
-   ```bash
-   sox input.wav -r 8000 -c 1 output.wav
-   ```
-
-## Security Notes
-
-- Change default database password
-- Update ARI credentials
-- Restrict web access with authentication
-- Use HTTPS in production
-- Set proper file permissions
-- Enable firewall rules
-
-## Support
-
-For issues and questions:
-- Check logs in `/var/www/html/adial/logs/`
-- Review ARI logs in database
-- Check Asterisk logs: `/var/log/asterisk/full`
-
-## 📁 Project Structure
+## File Structure
 
 ```
 /var/www/html/adial/
-├── application/              # CodeIgniter application
-│   ├── controllers/         # Campaign, CDR, IVR controllers
+├── ami-daemon/              # AMI daemon
+│   ├── daemon.php           # Main daemon process
+│   ├── AmiClient.php        # AMI client library
+│   ├── Logger.php           # Logging utility
+│   ├── config.php           # Configuration
+│   ├── start-daemon.sh      # Start script
+│   └── stop-daemon.sh       # Stop script
+├── application/             # CodeIgniter application
+│   ├── controllers/         # Web controllers
 │   ├── models/              # Database models
-│   ├── views/               # UI templates
-│   ├── language/            # EN/RU translations
+│   ├── views/               # Web views
+│   ├── libraries/           # Custom libraries
+│   │   └── Dialplan_generator.php
 │   └── config/              # Configuration files
-├── stasis-app/              # Node.js Stasis application
-│   ├── app.js               # Main ARI handler
-│   ├── .env                 # Environment config
-│   └── package.json         # Dependencies
-├── database_schema.sql      # Database structure
-├── install.sh               # Automated installer
-├── start-dialer.sh          # Startup script
-└── Documentation...         # Guides and manuals
+├── logs/                    # Application logs
+├── uploads/                 # Uploaded files
+└── start-dialer.sh          # Main start script
+└── stop-dialer.sh           # Main stop script
 
-/var/lib/asterisk/sounds/dialer/     # IVR audio files
-/var/spool/asterisk/monitor/         # Call recordings
+/etc/asterisk/
+├── extensions_dialer.conf   # Auto-generated dialplan
+├── extensions_custom.conf   # Dialplan include
+└── manager_custom.conf      # AMI user
+
+/var/lib/asterisk/sounds/dialer/  # IVR audio files
+/var/spool/asterisk/monitor/adial/ # Call recordings
 ```
 
-## 🔧 Configuration
+## Upgrading
 
-### Quick Configuration
+1. Stop daemon: `systemctl stop adial-ami`
+2. Backup database and files
+3. Pull latest changes
+4. Run migrations (if any)
+5. Regenerate dialplan: `php test-dialplan-generator.php`
+6. Start daemon: `systemctl start adial-ami`
 
-After installation, edit:
+## Security Considerations
 
-**Database:**
+1. **Database**: Use strong passwords, restrict access to localhost
+2. **AMI**: Use strong password, restrict to 127.0.0.1
+3. **Web Interface**: Use HTTPS, implement authentication
+4. **File Permissions**: Restrict access to configuration files
+5. **Firewall**: Block AMI port (5038) from external access
+6. **SELinux**: Keep enabled with proper contexts
+
+## Performance Tuning
+
+### High Call Volume
+
+1. Increase concurrent calls per campaign
+2. Optimize MySQL queries with indexes
+3. Increase PHP memory limit
+4. Use SSD for recordings
+5. Monitor system resources
+
+### Database Optimization
+
+```sql
+-- Add indexes for performance
+ALTER TABLE campaign_numbers ADD INDEX idx_status (campaign_id, status);
+ALTER TABLE cdr ADD INDEX idx_campaign (campaign_id, calldate);
+```
+
+## Support
+
+### Log Files
+- AMI Daemon: `/var/www/html/adial/logs/ami-daemon.log`
+- Asterisk: `/var/log/asterisk/full`
+- PHP: `/var/log/httpd/error_log`
+
+### Asterisk CLI
 ```bash
-nano application/config/database.php
+asterisk -rvvv
 ```
 
-**ARI Connection:**
-```bash
-nano application/config/ari.php
-```
+Useful commands:
+- `manager show connected` - Show AMI connections
+- `dialplan show dialer-origination` - Show dialplan
+- `channel show all` - Show active channels
+- `cdr show status` - Show CDR status
 
-**Stasis App:**
-```bash
-nano stasis-app/.env
-```
+## License
 
-See **[ADMIN_GUIDE.md](ADMIN_GUIDE.md)** for advanced configuration.
+This project is open source. See LICENSE file for details.
 
-## 🛡️ Security
+## Credits
 
-**Important:** Change default credentials immediately after installation!
+Developed for FreePBX/Asterisk systems using AMI and dialplan-based routing.
 
-```bash
-# Database password
-mysql -u root -p
-ALTER USER 'adialer_user'@'localhost' IDENTIFIED BY 'NEW_PASSWORD';
+## Changelog
 
-# Update configs
-nano application/config/database.php
-nano stasis-app/.env
-
-# Restart services
-systemctl restart ari-dialer
-```
-
-**Additional security measures:**
-- Enable HTTPS (Let's Encrypt)
-- Restrict access by IP
-- Use strong passwords
-- Enable firewall
-- Regular security updates
-
-See **[ADMIN_GUIDE.md](ADMIN_GUIDE.md)** for security hardening.
-
-## 📊 System Monitoring
-
-### Service Status
-
-```bash
-# Check all services
-sudo /var/www/html/adial/start-dialer.sh
-
-# Individual services
-systemctl status ari-dialer
-systemctl status asterisk
-systemctl status httpd  # or apache2
-systemctl status mariadb
-```
-
-### View Logs
-
-```bash
-# Stasis app logs
-journalctl -u ari-dialer -f
-
-# Asterisk logs
-tail -f /var/log/asterisk/full
-
-# Web server logs
-tail -f /var/log/httpd/error_log  # CentOS
-tail -f /var/log/apache2/error.log  # Ubuntu
-```
-
-## 🔄 Backup and Recovery
-
-### Quick Backup
-
-```bash
-# Database
-mysqldump -u root -p adialer > backup_$(date +%Y%m%d).sql
-
-# Application files
-tar -czf adial_backup.tar.gz /var/www/html/adial
-
-# Recordings
-rsync -av /var/spool/asterisk/monitor/ /backup/recordings/
-```
-
-See **[ADMIN_GUIDE.md](ADMIN_GUIDE.md)** for automated backup setup.
-
-## 🆘 Troubleshooting
-
-### Common Issues
-
-**Services not starting?**
-```bash
-systemctl status ari-dialer
-journalctl -u ari-dialer -n 50
-```
-
-**Calls not connecting?**
-```bash
-asterisk -rx "pjsip show endpoints"
-asterisk -rx "ari show users"
-```
-
-**Web interface not loading?**
-```bash
-systemctl status httpd
-tail -f /var/log/httpd/error_log
-```
-
-See **[FAQ.md](FAQ.md)** and **[TROUBLESHOOTING.md](TROUBLESHOOTING.md)** for more solutions.
-
-## 🤝 Support
-
-**Resources:**
-- 📖 **[User Manual](USER_MANUAL.md)** - How to use the web interface
-- 🔧 **[Admin Guide](ADMIN_GUIDE.md)** - System administration
-- ❓ **[FAQ](FAQ.md)** - Frequently asked questions
-- 🔍 **[Troubleshooting](TROUBLESHOOTING.md)** - Problem solving
-
-**For technical issues:**
-1. Check documentation above
-2. Review log files
-3. Search GitHub issues
-4. Consult Asterisk ARI documentation
-
-## 🌟 Screenshots
-
-Access the web interface to see:
-- Modern, responsive dashboard
-- Real-time monitoring charts
-- Intuitive campaign management
-- Professional IVR configuration
-- Comprehensive CDR reports
-
-## 📝 License
-
-Proprietary - All rights reserved
-
----
-
-**Version:** 1.0.0
-**Last Updated:** 2024-11-14
-**Compatibility:** Asterisk 16+, PHP 7.2+, Node.js 14+
-
----
-
-Made with ❤️ using Asterisk ARI, CodeIgniter, Node.js, and Bootstrap
+### Version 2.0.0 (AMI)
+- Complete migration from ARI to AMI
+- Dialplan-based IVR routing
+- Native Asterisk CDR integration
+- Account code filtering
+- Improved stability and performance

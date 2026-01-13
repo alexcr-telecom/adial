@@ -9,6 +9,7 @@ class Ivr extends MY_Controller {
         $this->load->model('Ivr_action_model');
         $this->load->model('Campaign_model');
         $this->load->library('upload');
+        $this->load->library('dialplan_generator');
     }
 
     /**
@@ -77,6 +78,9 @@ class Ivr extends MY_Controller {
                 // Create IVR actions
                 $this->save_actions($ivr_menu_id);
 
+                // Regenerate dialplan
+                $this->dialplan_generator->generate();
+
                 $this->session->set_flashdata('success', 'IVR menu created successfully');
                 redirect('ivr/view/' . $ivr_menu_id);
             } else {
@@ -137,6 +141,9 @@ class Ivr extends MY_Controller {
                 $this->Ivr_action_model->delete_by_menu($id);
                 $this->save_actions($id);
 
+                // Regenerate dialplan
+                $this->dialplan_generator->generate();
+
                 $this->session->set_flashdata('success', 'IVR menu updated successfully');
                 redirect('ivr/view/' . $id);
             } else {
@@ -173,6 +180,9 @@ class Ivr extends MY_Controller {
 
         // Delete IVR menu (actions will be deleted by CASCADE)
         if ($this->Ivr_menu_model->delete($id)) {
+            // Regenerate dialplan
+            $this->dialplan_generator->generate();
+
             $this->session->set_flashdata('success', 'IVR menu deleted successfully');
         } else {
             $this->session->set_flashdata('error', 'Failed to delete IVR menu');
@@ -256,6 +266,7 @@ class Ivr extends MY_Controller {
         $dtmf_digits = $this->input->post('dtmf_digit');
         $action_types = $this->input->post('action_type');
         $action_values = $this->input->post('action_value');
+        $channel_types = $this->input->post('channel_type');
 
         if (empty($dtmf_digits)) {
             return true;
@@ -272,11 +283,15 @@ class Ivr extends MY_Controller {
                     $action_value = '';
                 }
 
+                // Get channel type, default to 'sip'
+                $channel_type = isset($channel_types[$index]) && !empty($channel_types[$index]) ? $channel_types[$index] : 'sip';
+
                 $action_data = array(
                     'ivr_menu_id' => $ivr_menu_id,
                     'dtmf_digit' => $digit,
                     'action_type' => $action_types[$index],
-                    'action_value' => $action_value
+                    'action_value' => $action_value,
+                    'channel_type' => $channel_type
                 );
 
                 try {

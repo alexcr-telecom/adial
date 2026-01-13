@@ -88,7 +88,7 @@
                                                     <option value="goto_ivr" <?php echo $action->action_type == 'goto_ivr' ? 'selected' : ''; ?>><?php echo $this->lang->line('ivr_action_goto_ivr'); ?></option>
                                                 </select>
                                             </div>
-                                            <div class="col-md-5 action-value-container">
+                                            <div class="col-md-3 action-value-container">
                                                 <label><?php echo $this->lang->line('ivr_action_value'); ?></label>
                                                 <input type="text" class="form-control action-value-field" name="action_value[]"
                                                        value="<?php echo htmlspecialchars($action->action_value); ?>"
@@ -106,6 +106,14 @@
                                                         <?php endforeach; ?>
                                                     <?php endif; ?>
                                                 </select>
+                                            </div>
+                                            <div class="col-md-2 action-channel-type-container" style="display:<?php echo $action->action_type == 'exten' ? 'block' : 'none'; ?>;">
+                                                <label>Channel Type</label>
+                                                <select class="form-control action-channel-type" name="channel_type[]">
+                                                    <option value="sip" <?php echo isset($action->channel_type) && $action->channel_type == 'sip' ? 'selected' : ''; ?>>SIP</option>
+                                                    <option value="pjsip" <?php echo isset($action->channel_type) && $action->channel_type == 'pjsip' ? 'selected' : ''; ?>>PJSIP</option>
+                                                </select>
+                                                <small class="form-text text-muted">SIP/100 or PJSIP/100</small>
                                             </div>
                                             <div class="col-md-1">
                                                 <label>&nbsp;</label><br>
@@ -142,7 +150,7 @@
                                                 <option value="goto_ivr"><?php echo $this->lang->line('ivr_action_goto_ivr'); ?></option>
                                             </select>
                                         </div>
-                                        <div class="col-md-5 action-value-container">
+                                        <div class="col-md-3 action-value-container">
                                             <label><?php echo $this->lang->line('ivr_action_value'); ?></label>
                                             <input type="text" class="form-control action-value-field" name="action_value[]"
                                                    placeholder="<?php echo $this->lang->line('ivr_help_action_placeholder'); ?>">
@@ -159,6 +167,14 @@
                                                     <?php endforeach; ?>
                                                 <?php endif; ?>
                                             </select>
+                                        </div>
+                                        <div class="col-md-2 action-channel-type-container" style="display:none;">
+                                            <label>Channel Type</label>
+                                            <select class="form-control action-channel-type" name="channel_type[]">
+                                                <option value="sip" selected>SIP</option>
+                                                <option value="pjsip">PJSIP</option>
+                                            </select>
+                                            <small class="form-text text-muted">SIP/100 or PJSIP/100</small>
                                         </div>
                                         <div class="col-md-1">
                                             <label>&nbsp;</label><br>
@@ -194,7 +210,7 @@
                                                 <option value="goto_ivr"><?php echo $this->lang->line('ivr_action_goto_ivr'); ?></option>
                                             </select>
                                         </div>
-                                        <div class="col-md-5 action-value-container">
+                                        <div class="col-md-3 action-value-container">
                                             <label><?php echo $this->lang->line('ivr_action_value'); ?></label>
                                             <input type="text" class="form-control action-value-field" name="action_value[]"
                                                    placeholder="<?php echo $this->lang->line('ivr_help_action_placeholder'); ?>">
@@ -211,6 +227,14 @@
                                                     <?php endforeach; ?>
                                                 <?php endif; ?>
                                             </select>
+                                        </div>
+                                        <div class="col-md-2 action-channel-type-container" style="display:none;">
+                                            <label>Channel Type</label>
+                                            <select class="form-control action-channel-type" name="channel_type[]">
+                                                <option value="sip" selected>SIP</option>
+                                                <option value="pjsip">PJSIP</option>
+                                            </select>
+                                            <small class="form-text text-muted">SIP/100 or PJSIP/100</small>
                                         </div>
                                         <div class="col-md-1">
                                             <label>&nbsp;</label><br>
@@ -280,7 +304,7 @@ $(document).ready(function() {
                             <option value="goto_ivr"><?php echo $this->lang->line('ivr_action_goto_ivr'); ?></option>
                         </select>
                     </div>
-                    <div class="col-md-5 action-value-container">
+                    <div class="col-md-3 action-value-container">
                         <label><?php echo $this->lang->line('ivr_action_value'); ?></label>
                         <input type="text" class="form-control action-value-field" name="action_value[]"
                                placeholder="<?php echo $this->lang->line('ivr_help_action_placeholder'); ?>" required>
@@ -294,6 +318,14 @@ $(document).ready(function() {
                                 <?php endforeach; ?>
                             <?php endif; ?>
                         </select>
+                    </div>
+                    <div class="col-md-2 action-channel-type-container" style="display:none;">
+                        <label>Channel Type</label>
+                        <select class="form-control action-channel-type" name="channel_type[]">
+                            <option value="sip" selected>SIP</option>
+                            <option value="pjsip">PJSIP</option>
+                        </select>
+                        <small class="form-text text-muted">SIP/100 or PJSIP/100</small>
                     </div>
                     <div class="col-md-1">
                         <label>&nbsp;</label><br>
@@ -325,21 +357,32 @@ $(document).ready(function() {
         var $actionValueField = $actionRow.find('.action-value-field');
         var $ivrSelect = $actionRow.find('.action-ivr-select');
         var $queueHelp = $actionRow.find('.action-queue-help');
+        var $channelTypeContainer = $actionRow.find('.action-channel-type-container');
 
         if (actionType === 'hangup') {
             $actionValueContainer.hide();
             $actionValueField.prop('required', false).val('').hide();
             $ivrSelect.hide();
             $queueHelp.hide();
+            $channelTypeContainer.hide();
         } else if (actionType === 'goto_ivr') {
             $actionValueContainer.show();
             $actionValueField.prop('required', false).hide();
             $ivrSelect.prop('required', true).show();
             $queueHelp.hide();
+            $channelTypeContainer.hide();
+        } else if (actionType === 'exten') {
+            // Extension action - show channel type selector
+            $actionValueContainer.show();
+            $actionValueField.prop('required', true).show();
+            $ivrSelect.prop('required', false).hide();
+            $queueHelp.hide();
+            $channelTypeContainer.show();
         } else {
             $actionValueContainer.show();
             $actionValueField.prop('required', true).show();
             $ivrSelect.prop('required', false).hide();
+            $channelTypeContainer.hide();
 
             // Show queue help text only for queue action
             if (actionType === 'queue') {

@@ -1,0 +1,14 @@
+{
+    "name": "adial/ami-daemon",
+    "description": "A-Dial AMI Daemon for Campaign Management",
+    "require": {
+        "php": ">=7.4",
+        "marcelog/pami": "^2.0|^3.0"
+    },
+    "minimum-stability": "stable",
+    "autoload": {
+        "psr-4": {
+            "ADialAMI\\": "src/"
+        }
+    }
+}
