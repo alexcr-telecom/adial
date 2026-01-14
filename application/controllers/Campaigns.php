@@ -10,6 +10,7 @@ class Campaigns extends MY_Controller {
         $this->load->model('Campaign_model');
         $this->load->model('Campaign_number_model');
         $this->load->model('Ivr_menu_model');
+        $this->load->model('Cdr_model');
         $this->load->library('upload');
     }
 
@@ -41,6 +42,9 @@ class Campaigns extends MY_Controller {
 
         $data['stats'] = $this->Campaign_model->get_stats($id);
         $data['numbers'] = $this->Campaign_number_model->get_by_campaign($id, null, 100);
+
+        // Get CDR records for this campaign (limit to last 50 records)
+        $data['cdr_records'] = $this->Cdr_model->get_all(['campaign_id' => $id], 50, 0);
 
         $this->load->view('templates/header', $data);
         $this->load->view('campaigns/view', $data);

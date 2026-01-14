@@ -275,6 +275,99 @@
             </div>
         </div>
     </div>
+
+    <!-- CDR Records Section -->
+    <div class="row mt-4">
+        <div class="col-12">
+            <div class="card">
+                <div class="card-header">
+                    <h5 class="mb-0">
+                        <i class="fas fa-phone-alt"></i> Call Detail Records (CDR)
+                        <span class="badge badge-info float-right">
+                            Last 50 calls
+                        </span>
+                    </h5>
+                </div>
+                <div class="card-body">
+                    <div class="table-responsive">
+                        <table class="table table-striped table-sm">
+                            <thead>
+                                <tr>
+                                    <th>Start Time</th>
+                                    <th>Caller ID</th>
+                                    <th>Destination</th>
+                                    <th>Agent</th>
+                                    <th>Duration</th>
+                                    <th>Billsec</th>
+                                    <th>Disposition</th>
+                                    <th>Recording</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                <?php if (!empty($cdr_records)): ?>
+                                    <?php foreach ($cdr_records as $cdr): ?>
+                                        <tr>
+                                            <td><?php echo date('Y-m-d H:i:s', strtotime($cdr->start_time)); ?></td>
+                                            <td><?php echo htmlspecialchars($cdr->callerid); ?></td>
+                                            <td><?php echo htmlspecialchars($cdr->destination); ?></td>
+                                            <td><?php echo htmlspecialchars($cdr->agent); ?></td>
+                                            <td><?php echo gmdate('H:i:s', $cdr->duration); ?></td>
+                                            <td><?php echo gmdate('H:i:s', $cdr->billsec); ?></td>
+                                            <td>
+                                                <?php
+                                                $disposition_classes = array(
+                                                    'answered' => 'success',
+                                                    'no_answer' => 'secondary',
+                                                    'busy' => 'warning',
+                                                    'failed' => 'danger',
+                                                    'cancelled' => 'info'
+                                                );
+                                                $class = isset($disposition_classes[$cdr->disposition]) ? $disposition_classes[$cdr->disposition] : 'secondary';
+                                                ?>
+                                                <span class="badge badge-<?php echo $class; ?>">
+                                                    <?php echo ucfirst(str_replace('_', ' ', $cdr->disposition)); ?>
+                                                </span>
+                                            </td>
+                                            <td>
+                                                <?php if ($cdr->recording_file): ?>
+                                                    <a href="<?php echo base_url('recordings/' . $cdr->recording_file); ?>"
+                                                       class="btn btn-sm btn-info"
+                                                       target="_blank"
+                                                       title="Play Recording">
+                                                        <i class="fas fa-play"></i>
+                                                    </a>
+                                                <?php else: ?>
+                                                    <span class="text-muted">-</span>
+                                                <?php endif; ?>
+                                            </td>
+                                        </tr>
+                                    <?php endforeach; ?>
+                                <?php else: ?>
+                                    <tr>
+                                        <td colspan="8" class="text-center py-5">
+                                            <div class="text-muted">
+                                                <i class="fas fa-phone-slash fa-3x mb-3"></i>
+                                                <h5>No call records yet</h5>
+                                                <p>Call records will appear here once the campaign starts making calls.</p>
+                                            </div>
+                                        </td>
+                                    </tr>
+                                <?php endif; ?>
+                            </tbody>
+                        </table>
+                    </div>
+
+                    <?php if (!empty($cdr_records)): ?>
+                        <div class="mt-3 text-center">
+                            <a href="<?php echo site_url('cdr?campaign_id=' . $campaign->id); ?>" class="btn btn-primary">
+                                <i class="fas fa-list"></i> View All CDR Records
+                            </a>
+                        </div>
+                    <?php endif; ?>
+                </div>
+            </div>
+        </div>
+    </div>
 </div>
 
 <script>
