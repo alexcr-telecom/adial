@@ -28,8 +28,53 @@ class Ami_scanner {
     /**
      * Get all endpoints (SIP + PJSIP)
      * Returns array in format compatible with form dropdowns
+     * Uses cached data from database for performance
      */
     public function get_endpoints() {
+        try {
+            // Get cached endpoints from database
+            $this->CI->db->select('technology, resource, state');
+            $this->CI->db->from('endpoints_cache');
+            $this->CI->db->order_by('technology', 'ASC');
+            $this->CI->db->order_by('resource', 'ASC');
+            $query = $this->CI->db->get();
+
+            if ($query->num_rows() > 0) {
+                // Return cached data
+                $endpoints = [];
+                foreach ($query->result_array() as $row) {
+                    $endpoints[] = [
+                        'technology' => $row['technology'],
+                        'resource' => $row['resource'],
+                        'state' => $row['state']
+                    ];
+                }
+
+                return [
+                    'success' => true,
+                    'data' => $endpoints,
+                    'cached' => true
+                ];
+            } else {
+                // Cache is empty, scan and populate
+                log_message('info', 'Endpoints cache is empty, performing initial scan');
+                return $this->refresh_cache();
+            }
+
+        } catch (Exception $e) {
+            log_message('error', 'AMI Scanner error: ' . $e->getMessage());
+            return [
+                'success' => false,
+                'error' => $e->getMessage(),
+                'data' => []
+            ];
+        }
+    }
+
+    /**
+     * Refresh endpoints cache by scanning AMI
+     */
+    public function refresh_cache() {
         $endpoints = [];
 
         try {
@@ -53,18 +98,56 @@ class Ami_scanner {
                 ];
             }
 
+            // Update cache in database
+            $this->update_cache($endpoints);
+
             return [
                 'success' => true,
-                'data' => $endpoints
+                'data' => $endpoints,
+                'cached' => false
             ];
 
         } catch (Exception $e) {
-            log_message('error', 'AMI Scanner error: ' . $e->getMessage());
+            log_message('error', 'AMI Scanner refresh error: ' . $e->getMessage());
             return [
                 'success' => false,
                 'error' => $e->getMessage(),
                 'data' => []
             ];
+        }
+    }
+
+    /**
+     * Update endpoints cache in database
+     */
+    private function update_cache($endpoints) {
+        if (empty($endpoints)) {
+            return;
+        }
+
+        // Start transaction
+        $this->CI->db->trans_start();
+
+        // Clear old cache
+        $this->CI->db->truncate('endpoints_cache');
+
+        // Insert new endpoints
+        foreach ($endpoints as $endpoint) {
+            $this->CI->db->insert('endpoints_cache', [
+                'technology' => $endpoint['technology'],
+                'resource' => $endpoint['resource'],
+                'state' => $endpoint['state'],
+                'created_at' => date('Y-m-d H:i:s')
+            ]);
+        }
+
+        // Complete transaction
+        $this->CI->db->trans_complete();
+
+        if ($this->CI->db->trans_status() === FALSE) {
+            log_message('error', 'Failed to update endpoints cache');
+        } else {
+            log_message('info', 'Endpoints cache updated with ' . count($endpoints) . ' entries');
         }
     }
 
