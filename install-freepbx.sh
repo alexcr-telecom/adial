@@ -249,6 +249,16 @@ return [
         'charset' => 'utf8mb4'
     ],
 
+    // Asterisk CDR Database Configuration
+    'cdr_database' => [
+        'host' => '127.0.0.1',
+        'port' => 3306,
+        'username' => 'freepbxuser',
+        'password' => 'CHANGE_ME',
+        'database' => 'asteriskcdrdb',
+        'charset' => 'utf8mb4'
+    ],
+
     // Application Settings
     'app' => [
         'debug_mode' => false,
@@ -262,13 +272,13 @@ return [
     // Campaign Processing Settings
     'campaigns' => [
         // How often to check for active campaigns (in seconds)
-        'reload_interval' => 10,
+        'reload_interval' => 5,
 
         // How often to process each campaign (in seconds)
-        'process_interval' => 3,
+        'process_interval' => 2,
 
         // Minimum retry delay (in seconds)
-        'min_retry_delay' => 1
+        'min_retry_delay' => 60
     ]
 ];
 EOF
@@ -431,4 +441,9 @@ echo "  Asterisk CLI: asterisk -rvvv"
 echo "  Daemon Status: systemctl status adial-ami"
 echo ""
 echo "IMPORTANT: Save the credentials above to a secure location!"
+echo ""
+echo "MANUAL CONFIGURATION REQUIRED:"
+echo "=============================="
+echo "Edit $INSTALL_DIR/ami-daemon/config.php and update:"
+echo "  - cdr_database password (replace CHANGE_ME with FreePBX database password)"
 echo ""
