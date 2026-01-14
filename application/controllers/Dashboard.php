@@ -5,7 +5,7 @@ class Dashboard extends MY_Controller {
 
     public function __construct() {
         parent::__construct();
-        $this->load->library('ari_client');
+        $this->load->library('ami_status');
         $this->load->model('Campaign_model');
         $this->load->model('Cdr_model');
     }
@@ -13,10 +13,10 @@ class Dashboard extends MY_Controller {
     public function index() {
         $data = array();
 
-        // Get Asterisk info
-        $asterisk_info = $this->ari_client->get_asterisk_info();
-        $data['asterisk_status'] = $asterisk_info['success'] ? 'online' : 'offline';
-        $data['asterisk_info'] = $asterisk_info['success'] ? $asterisk_info['data'] : null;
+        // Get Asterisk info via AMI
+        $asterisk_info = $this->ami_status->get_status();
+        $data['asterisk_status'] = $asterisk_info['status'];
+        $data['asterisk_info'] = $asterisk_info;
 
         // Check database connection
         try {
@@ -26,17 +26,16 @@ class Dashboard extends MY_Controller {
             $data['database_status'] = 'offline';
         }
 
-        // Check ARI WebSocket (based on config)
-        $data['ari_ws_status'] = $asterisk_info['success'] ? 'online' : 'offline';
+        // Check AMI connection status
+        $data['ami_status'] = $asterisk_info['status'];
 
         // Get campaigns
         $data['campaigns'] = $this->Campaign_model->get_all();
         $data['active_campaigns'] = $this->Campaign_model->get_active();
 
-        // Get active channels
-        $channels = $this->ari_client->get_channels();
-        $data['active_channels'] = $channels['success'] ? (is_array($channels['data']) ? count($channels['data']) : 0) : 0;
-        $data['channels_list'] = $channels['success'] && is_array($channels['data']) ? $channels['data'] : array();
+        // Get active channels via AMI
+        $data['active_channels'] = $this->ami_status->get_active_channels_count();
+        $data['channels_list'] = $this->ami_status->get_active_channels();
 
         // Get recent CDR stats
         $data['today_calls'] = $this->db->where('DATE(start_time)', date('Y-m-d'))
@@ -59,9 +58,10 @@ class Dashboard extends MY_Controller {
 
         $status = array();
 
-        // Get Asterisk info
-        $asterisk_info = $this->ari_client->get_asterisk_info();
-        $status['asterisk'] = $asterisk_info['success'] ? 'online' : 'offline';
+        // Get Asterisk info via AMI
+        $asterisk_info = $this->ami_status->get_status();
+        $status['asterisk'] = $asterisk_info['status'];
+        $status['ami'] = $asterisk_info['status'];
 
         // Database status
         try {
@@ -71,9 +71,8 @@ class Dashboard extends MY_Controller {
             $status['database'] = 'offline';
         }
 
-        // Active channels
-        $channels = $this->ari_client->get_channels();
-        $status['active_channels'] = $channels['success'] && is_array($channels['data']) ? count($channels['data']) : 0;
+        // Active channels via AMI
+        $status['active_channels'] = $this->ami_status->get_active_channels_count();
 
         // Active campaigns
         $status['active_campaigns'] = $this->db->where('status', 'running')
@@ -88,10 +87,10 @@ class Dashboard extends MY_Controller {
     public function get_channels() {
         header('Content-Type: application/json');
 
-        $channels = $this->ari_client->get_channels();
+        $channels = $this->ami_status->get_active_channels();
 
-        if ($channels['success'] && is_array($channels['data'])) {
-            echo json_encode(array('success' => true, 'channels' => $channels['data']));
+        if (!empty($channels)) {
+            echo json_encode(array('success' => true, 'channels' => $channels));
         } else {
             echo json_encode(array('success' => false, 'channels' => array()));
         }

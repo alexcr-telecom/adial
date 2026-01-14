@@ -39,10 +39,13 @@
             <div class="card-body">
                 <div class="d-flex justify-content-between align-items-center">
                     <div>
-                        <h6 class="text-muted"><?php echo $this->lang->line('dashboard_ari_websocket'); ?></h6>
-                        <span class="status-badge status-<?php echo $ari_ws_status; ?>" id="ari-ws-status">
-                            <?php echo strtoupper($ari_ws_status); ?>
+                        <h6 class="text-muted">AMI Status</h6>
+                        <span class="status-badge status-<?php echo $ami_status; ?>" id="ami-status">
+                            <?php echo strtoupper($ami_status); ?>
                         </span>
+                        <?php if (isset($asterisk_info['version']) && $asterisk_info['version'] !== 'Unknown'): ?>
+                            <small class="d-block text-muted mt-1">v<?php echo $asterisk_info['version']; ?></small>
+                        <?php endif; ?>
                     </div>
                     <i class="fas fa-plug fa-2x text-info"></i>
                 </div>
@@ -188,9 +191,16 @@
     // Auto-refresh status every 5 seconds
     setInterval(function() {
         $.get(base_url + 'dashboard/get_status', function(data) {
+            // Update Asterisk status
             $('#asterisk-status').removeClass('status-online status-offline').addClass('status-' + data.asterisk).text(data.asterisk.toUpperCase());
+
+            // Update Database status
             $('#database-status').removeClass('status-online status-offline').addClass('status-' + data.database).text(data.database.toUpperCase());
-            $('#ari-ws-status').removeClass('status-online status-offline').addClass('status-' + data.asterisk).text(data.asterisk.toUpperCase());
+
+            // Update AMI status
+            $('#ami-status').removeClass('status-online status-offline').addClass('status-' + data.ami).text(data.ami.toUpperCase());
+
+            // Update active channels count
             $('#active-channels').text(data.active_channels);
         });
 
@@ -200,11 +210,11 @@
                 var html = '';
                 data.channels.forEach(function(channel) {
                     html += '<div class="border-bottom pb-2 mb-2">';
-                    html += '<strong>' + (channel.name || 'N/A') + '</strong><br>';
+                    html += '<strong>' + (channel.channel || channel.name || 'N/A') + '</strong><br>';
                     html += '<small class="text-muted">';
-                    html += '<?php echo $this->lang->line('dashboard_channel_state'); ?>: ' + (channel.state || 'N/A');
-                    if (channel.caller && channel.caller.number) {
-                        html += '<br><?php echo $this->lang->line('dashboard_channel_caller'); ?>: ' + channel.caller.number;
+                    html += 'State: ' + (channel.channelstate || channel.state || 'N/A');
+                    if (channel.calleridnum || (channel.caller && channel.caller.number)) {
+                        html += '<br>Caller: ' + (channel.calleridnum || channel.caller.number);
                     }
                     html += '</small></div>';
                 });
