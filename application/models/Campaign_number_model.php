@@ -59,7 +59,7 @@ class Campaign_number_model extends CI_Model {
             $this->db->limit($limit, $offset);
         }
 
-        return $this->db->order_by('created_at', 'ASC')
+        return $this->db->order_by('id', 'ASC')
                         ->get('campaign_numbers')
                         ->result();
     }
@@ -70,7 +70,7 @@ class Campaign_number_model extends CI_Model {
     public function get_next_to_call($campaign_id) {
         return $this->db->where('campaign_id', $campaign_id)
                         ->where('status', 'pending')
-                        ->order_by('created_at', 'ASC')
+                        ->order_by('id', 'ASC')
                         ->limit(1)
                         ->get('campaign_numbers')
                         ->row();

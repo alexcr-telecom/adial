@@ -50,7 +50,7 @@ return [
         'reload_interval' => 10,
 
         // How often to process each campaign (in seconds)
-        'process_interval' => 3,
+        'process_interval' => 2,
 
         // Minimum retry delay (in seconds)
         'min_retry_delay' => 1
