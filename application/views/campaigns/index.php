@@ -71,17 +71,19 @@
                                     <td><?php echo date('Y-m-d H:i', strtotime($campaign->created_at)); ?></td>
                                     <td>
                                         <div class="btn-group btn-group-sm" role="group">
-                                            <!-- Start/Play button -->
-                                            <button type="button" class="btn btn-success btn-control"
+                                            <!-- Start/Play button - shown when stopped or paused -->
+                                            <button type="button" class="btn btn-success btn-control btn-start-<?php echo $campaign->id; ?>"
                                                     data-id="<?php echo $campaign->id; ?>"
-                                                    data-action="start">
+                                                    data-action="start"
+                                                    <?php echo ($campaign->status == 'running') ? 'style="display:none;"' : ''; ?>>
                                                 <i class="fas fa-play"></i>
                                             </button>
 
-                                            <!-- Pause button -->
-                                            <button type="button" class="btn btn-warning btn-control"
+                                            <!-- Pause button - shown when running -->
+                                            <button type="button" class="btn btn-warning btn-control btn-pause-<?php echo $campaign->id; ?>"
                                                     data-id="<?php echo $campaign->id; ?>"
-                                                    data-action="pause">
+                                                    data-action="pause"
+                                                    <?php echo ($campaign->status != 'running') ? 'style="display:none;"' : ''; ?>>
                                                 <i class="fas fa-pause"></i>
                                             </button>
 
@@ -139,6 +141,7 @@ $(document).ready(function() {
     $('.btn-control').click(function() {
         var campaignId = $(this).data('id');
         var action = $(this).data('action');
+        var btn = $(this);
 
         $.ajax({
             url: '<?php echo site_url('campaigns/control'); ?>/' + campaignId + '/' + action,
@@ -146,7 +149,27 @@ $(document).ready(function() {
             dataType: 'json',
             success: function(response) {
                 if (response.success) {
-                    location.reload();
+                    // Update button visibility and status badge
+                    var statusBadge = $('#status-' + campaignId);
+                    var startBtn = $('.btn-start-' + campaignId);
+                    var pauseBtn = $('.btn-pause-' + campaignId);
+
+                    if (action == 'start') {
+                        // Started - show pause, hide start
+                        startBtn.hide();
+                        pauseBtn.show();
+                        statusBadge.removeClass('badge-secondary badge-warning').addClass('badge-success').text('Running');
+                    } else if (action == 'pause') {
+                        // Paused - show start, hide pause
+                        pauseBtn.hide();
+                        startBtn.show();
+                        statusBadge.removeClass('badge-success badge-secondary').addClass('badge-warning').text('Paused');
+                    } else if (action == 'stop') {
+                        // Stopped - show start, hide pause
+                        pauseBtn.hide();
+                        startBtn.show();
+                        statusBadge.removeClass('badge-success badge-warning').addClass('badge-secondary').text('Stopped');
+                    }
                 } else {
                     alert('<?php echo $this->lang->line('campaigns_error'); ?>: ' + response.message);
                 }

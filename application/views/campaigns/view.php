@@ -4,13 +4,15 @@
             <h2>Campaign: <?php echo htmlspecialchars($campaign->name); ?></h2>
         </div>
         <div class="col-md-6 text-right">
-            <!-- Start button -->
-            <button type="button" class="btn btn-success btn-control" data-action="start">
+            <!-- Start button - shown when stopped or paused -->
+            <button type="button" class="btn btn-success btn-control btn-start" data-action="start"
+                    <?php echo ($campaign->status == 'running') ? 'style="display:none;"' : ''; ?>>
                 <i class="fas fa-play"></i> Start
             </button>
 
-            <!-- Pause button -->
-            <button type="button" class="btn btn-warning btn-control" data-action="pause">
+            <!-- Pause button - shown when running -->
+            <button type="button" class="btn btn-warning btn-control btn-pause" data-action="pause"
+                    <?php echo ($campaign->status != 'running') ? 'style="display:none;"' : ''; ?>>
                 <i class="fas fa-pause"></i> Pause
             </button>
 
@@ -383,7 +385,27 @@ $(document).ready(function() {
             dataType: 'json',
             success: function(response) {
                 if (response.success) {
-                    location.reload();
+                    // Update button visibility and status badge
+                    var statusBadge = $('#campaign-status');
+                    var startBtn = $('.btn-start');
+                    var pauseBtn = $('.btn-pause');
+
+                    if (action == 'start') {
+                        // Started - show pause, hide start
+                        startBtn.hide();
+                        pauseBtn.show();
+                        statusBadge.removeClass('badge-secondary badge-warning').addClass('badge-success').text('Running');
+                    } else if (action == 'pause') {
+                        // Paused - show start, hide pause
+                        pauseBtn.hide();
+                        startBtn.show();
+                        statusBadge.removeClass('badge-success badge-secondary').addClass('badge-warning').text('Paused');
+                    } else if (action == 'stop') {
+                        // Stopped - show start, hide pause
+                        pauseBtn.hide();
+                        startBtn.show();
+                        statusBadge.removeClass('badge-success badge-warning').addClass('badge-secondary').text('Stopped');
+                    }
                 } else {
                     alert('Error: ' + response.message);
                 }
