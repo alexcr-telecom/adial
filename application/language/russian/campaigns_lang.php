@@ -29,7 +29,9 @@ $lang['campaigns_agent_dest_value'] = 'Значение назначения';
 $lang['campaigns_agent_dest_custom'] = 'Произвольный';
 $lang['campaigns_agent_dest_extension'] = 'Внутренний номер';
 $lang['campaigns_agent_dest_ivr'] = 'IVR';
+$lang['campaigns_agent_dest_queue'] = 'Очередь';
 $lang['campaigns_select_ivr'] = 'Выберите IVR меню';
+$lang['campaigns_select_queue'] = 'Выберите очередь';
 
 // Help text
 $lang['campaigns_help_max_calls'] = 'Максимальное количество одновременных звонков';
@@ -38,6 +40,7 @@ $lang['campaigns_help_record_calls'] = 'Оба канала будут запи�
 $lang['campaigns_help_custom'] = 'Введите полную строку набора (например, PJSIP/100, Local/100@from-internal)';
 $lang['campaigns_help_extension'] = 'Введите номер внутреннего телефона (например, 100)';
 $lang['campaigns_help_ivr'] = 'Выберите IVR меню из выпадающего списка ниже';
+$lang['campaigns_help_queue'] = 'Введите имя очереди (например, 601)';
 
 // Sections
 $lang['campaigns_section_basic'] = 'Основная информация';

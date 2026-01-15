@@ -118,6 +118,7 @@
                                 <option value="custom" <?php echo isset($campaign) && $campaign->agent_dest_type == 'custom' ? 'selected' : ''; ?>><?php echo $this->lang->line('campaigns_agent_dest_custom'); ?></option>
                                 <option value="exten" <?php echo isset($campaign) && $campaign->agent_dest_type == 'exten' ? 'selected' : ''; ?>><?php echo $this->lang->line('campaigns_agent_dest_extension'); ?></option>
                                 <option value="ivr" <?php echo isset($campaign) && $campaign->agent_dest_type == 'ivr' ? 'selected' : ''; ?>><?php echo $this->lang->line('campaigns_agent_dest_ivr'); ?></option>
+                                <option value="queue" <?php echo isset($campaign) && $campaign->agent_dest_type == 'queue' ? 'selected' : ''; ?>><?php echo $this->lang->line('campaigns_agent_dest_queue'); ?></option>
                             </select>
                         </div>
 
@@ -130,6 +131,7 @@
                                 <span id="agent_help_custom"><?php echo $this->lang->line('campaigns_help_custom'); ?></span>
                                 <span id="agent_help_exten" style="display:none;"><?php echo $this->lang->line('campaigns_help_extension'); ?></span>
                                 <span id="agent_help_ivr" style="display:none;"><?php echo $this->lang->line('campaigns_help_ivr'); ?></span>
+                                <span id="agent_help_queue" style="display:none;"><?php echo $this->lang->line('campaigns_help_queue'); ?></span>
                             </small>
                         </div>
 
@@ -163,6 +165,14 @@
                             <small class="form-text text-muted">
                                 <a href="<?php echo site_url('ivr'); ?>" target="_blank"><?php echo $this->lang->line('campaigns_manage_ivr'); ?></a>
                             </small>
+                        </div>
+
+                        <div class="form-group" id="agent_queue_input_group" style="display:none;">
+                            <label for="agent_queue_input"><?php echo $this->lang->line('campaigns_select_queue'); ?> *</label>
+                            <input type="text" class="form-control" id="agent_queue_input" name="agent_queue_input"
+                                   value="<?php echo isset($campaign) && $campaign->agent_dest_type == 'queue' ? htmlspecialchars($campaign->agent_dest_value) : ''; ?>"
+                                   placeholder="e.g., 601">
+                            <small class="form-text text-muted"><?php echo $this->lang->line('campaigns_help_queue'); ?></small>
                         </div>
 
                         <div class="form-group">
@@ -232,19 +242,21 @@ $(document).ready(function() {
         $('.form-text span').hide();
         $('#agent_help_' + type).show();
 
+        // Hide all groups first
+        $('#agent_dest_value_group').hide();
+        $('#agent_exten_select_group').hide();
+        $('#agent_ivr_select_group').hide();
+        $('#agent_queue_input_group').hide();
+        $('#agent_dest_value').prop('required', false);
+        $('#agent_exten_select').prop('required', false);
+        $('#agent_ivr_select').prop('required', false);
+        $('#agent_queue_input').prop('required', false);
+
         if (type === 'ivr') {
-            $('#agent_dest_value_group').hide();
-            $('#agent_exten_select_group').hide();
             $('#agent_ivr_select_group').show();
-            $('#agent_dest_value').prop('required', false);
-            $('#agent_exten_select').prop('required', false);
             $('#agent_ivr_select').prop('required', true);
         } else if (type === 'exten') {
-            $('#agent_dest_value_group').hide();
-            $('#agent_ivr_select_group').hide();
             $('#agent_exten_select_group').show();
-            $('#agent_dest_value').prop('required', false);
-            $('#agent_ivr_select').prop('required', false);
             $('#agent_exten_select').prop('required', true);
 
             // Pre-populate dropdown if agent_dest_value exists
@@ -252,13 +264,12 @@ $(document).ready(function() {
             if (currentAgentValue) {
                 $('#agent_exten_select').val(currentAgentValue);
             }
+        } else if (type === 'queue') {
+            $('#agent_queue_input_group').show();
+            $('#agent_queue_input').prop('required', true);
         } else {
             $('#agent_dest_value_group').show();
-            $('#agent_exten_select_group').hide();
-            $('#agent_ivr_select_group').hide();
             $('#agent_dest_value').prop('required', true);
-            $('#agent_exten_select').prop('required', false);
-            $('#agent_ivr_select').prop('required', false);
             $('#agent_dest_value').prop('placeholder', 'e.g., Local/100@from-internal or PJSIP/100');
         }
     }).trigger('change');
@@ -270,14 +281,14 @@ $(document).ready(function() {
             $('#trunk_value').val($('#trunk_select').val());
         }
 
-        // If agent dest type is exten, copy selected extension to agent_dest_value
-        if ($('#agent_dest_type').val() === 'exten') {
+        // Copy agent destination value based on type
+        var destType = $('#agent_dest_type').val();
+        if (destType === 'exten') {
             $('#agent_dest_value').val($('#agent_exten_select').val());
-        }
-
-        // If agent dest type is IVR, copy selected IVR ID to agent_dest_value
-        if ($('#agent_dest_type').val() === 'ivr') {
+        } else if (destType === 'ivr') {
             $('#agent_dest_value').val($('#agent_ivr_select').val());
+        } else if (destType === 'queue') {
+            $('#agent_dest_value').val($('#agent_queue_input').val());
         }
     });
 });

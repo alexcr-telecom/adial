@@ -31,7 +31,9 @@ $lang['campaigns_agent_dest_value'] = 'Destination Value';
 $lang['campaigns_agent_dest_custom'] = 'Custom';
 $lang['campaigns_agent_dest_extension'] = 'Extension';
 $lang['campaigns_agent_dest_ivr'] = 'IVR';
+$lang['campaigns_agent_dest_queue'] = 'Queue';
 $lang['campaigns_select_ivr'] = 'Select IVR Menu';
+$lang['campaigns_select_queue'] = 'Select Queue';
 
 // Help text
 $lang['campaigns_help_max_calls'] = 'Maximum number of simultaneous calls';
@@ -40,6 +42,7 @@ $lang['campaigns_help_record_calls'] = 'Both channels will be recorded and mixed
 $lang['campaigns_help_custom'] = 'Enter full dial string (e.g., PJSIP/100, Local/100@from-internal)';
 $lang['campaigns_help_extension'] = 'Enter extension number (e.g., 100)';
 $lang['campaigns_help_ivr'] = 'Select IVR menu from dropdown below';
+$lang['campaigns_help_queue'] = 'Enter queue name (e.g., 601)';
 $lang['campaigns_help_dial_timeout'] = 'Time to wait for number to answer before terminating (5-120 seconds)';
 $lang['campaigns_help_call_timeout'] = 'Maximum conversation duration limit (60-7200 seconds)';
 
