@@ -94,47 +94,36 @@ EOT;
     }
 
     /**
-     * Build campaign origination context
+     * Build campaign dialplan contexts
      */
     private function buildOriginationContext() {
         return <<<'EOT'
-[dialer-origination]
-; Entry point for all campaign calls
-exten => _X.,1,NoOp(Campaign Call: Campaign=${CAMPAIGN_ID}, Number=${NUMBER_ID})
+[dialer_out]
+; Outbound dialing context - uses TRUNK variable to dial external numbers
+exten => _X.,1,NoOp(Dialer Outbound: ${EXTEN} via ${TRUNK})
  same => n,Set(CDR(accountcode)=${CAMPAIGN_ID})
  same => n,Set(CDR(userfield)=${CAMPAIGN_ID}:${NUMBER_ID})
  same => n,Set(__CAMPAIGN_ID=${CAMPAIGN_ID})
  same => n,Set(__NUMBER_ID=${NUMBER_ID})
- same => n,Set(__DEST_CONTEXT=${DEST_CONTEXT})
- same => n,Set(__DEST_EXTEN=${DEST_EXTEN})
- same => n,Set(__TRUNK=${TRUNK})
- same => n,Set(CHANNEL(language)=en)
- same => n,MixMonitor(${UNIQUEID}.wav,b)
- same => n,Dial(${TRUNK}/${EXTEN},60,g)
- same => n,NoOp(Dial Status: ${DIALSTATUS})
- same => n,GotoIf($["${DIALSTATUS}"="ANSWER"]?answered:failed)
- same => n(answered),Answer()
- same => n,Wait(1)
- same => n,UserEvent(CallAnswered,Campaign:${CAMPAIGN_ID},Number:${NUMBER_ID},Channel:${CHANNEL})
- same => n,Goto(${DEST_CONTEXT},${DEST_EXTEN},1)
- same => n(failed),UserEvent(CallFailed,Campaign:${CAMPAIGN_ID},Number:${NUMBER_ID},Status:${DIALSTATUS})
+ same => n,Dial(${TRUNK}/${EXTEN},60)
  same => n,Hangup()
 
-[dialer-local]
-; Context for dialing local extensions via LOCAL channel
-exten => _X.,1,NoOp(Dialing local extension ${EXTEN})
+[dialer_agent]
+; Agent destination context - dials agent extension via LOCAL channel
+exten => _X.,1,NoOp(Dialer Agent: Connecting to extension ${EXTEN})
  same => n,Set(CDR(accountcode)=${CAMPAIGN_ID})
- same => n,UserEvent(ExtensionDial,Campaign:${CAMPAIGN_ID},Number:${NUMBER_ID},Extension:${EXTEN})
- same => n,Dial(LOCAL/${EXTEN}@from-internal,60,g)
- same => n,NoOp(Dial Status: ${DIALSTATUS})
+ same => n,UserEvent(AgentConnect,Campaign:${CAMPAIGN_ID},Number:${NUMBER_ID},Agent:${EXTEN})
+ same => n,Dial(LOCAL/${EXTEN}@from-internal,60)
+ same => n,NoOp(Agent Dial Status: ${DIALSTATUS})
  same => n,Hangup()
 
-[dialer-extension]
-; Entry point for extension destination - transfers to local extension
-exten => s,1,NoOp(Extension Destination: ${DEST_VALUE})
- same => n,UserEvent(TransferToExtension,Campaign:${CAMPAIGN_ID},Number:${NUMBER_ID},Extension:${DEST_VALUE})
- same => n,Dial(LOCAL/${DEST_VALUE}@from-internal,60,g)
- same => n,NoOp(Dial Status: ${DIALSTATUS})
+[dialer_queue]
+; Queue destination context - puts caller into queue
+exten => _X.,1,NoOp(Dialer Queue: Adding to queue ${EXTEN})
+ same => n,Set(CDR(accountcode)=${CAMPAIGN_ID})
+ same => n,UserEvent(QueueConnect,Campaign:${CAMPAIGN_ID},Number:${NUMBER_ID},Queue:${EXTEN})
+ same => n,Queue(${EXTEN},t,,,300)
+ same => n,NoOp(Queue Status: ${QUEUESTATUS})
  same => n,Hangup()
 
 

@@ -80,7 +80,7 @@ CREATE TABLE `campaigns` (
   `trunk_type` enum('custom','pjsip','sip') NOT NULL DEFAULT 'custom',
   `trunk_value` varchar(255) NOT NULL COMMENT 'Trunk name or custom dial string',
   `callerid` varchar(100) DEFAULT NULL,
-  `agent_dest_type` enum('custom','exten','ivr') NOT NULL DEFAULT 'custom',
+  `agent_dest_type` enum('custom','exten','ivr','queue') NOT NULL DEFAULT 'custom',
   `agent_dest_value` varchar(255) DEFAULT NULL COMMENT 'Destination value based on type',
   `record_calls` tinyint(1) NOT NULL DEFAULT '0',
   `status` enum('stopped','running','paused') NOT NULL DEFAULT 'stopped',

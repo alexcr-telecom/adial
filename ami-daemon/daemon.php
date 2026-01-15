@@ -369,9 +369,8 @@ class ADialDaemon {
             // with accountcode set to campaign_id for filtering
 
             // Determine destination context and extension based on agent_dest_type
-            $destContext = 'dialer-extension';
-            $destExten = 's';
-            $destValue = $campaign['agent_dest_value'] ?? '';
+            $destContext = 'dialer_agent';
+            $destExten = $campaign['agent_dest_value'] ?? 's';
 
             switch ($campaign['agent_dest_type']) {
                 case 'ivr':
@@ -379,32 +378,32 @@ class ADialDaemon {
                     $destExten = 's';
                     break;
                 case 'exten':
-                    $destContext = 'dialer-extension';
-                    $destExten = 's';
+                    $destContext = 'dialer_agent';
+                    $destExten = $campaign['agent_dest_value'] ?? 's';
+                    break;
+                case 'queue':
+                    $destContext = 'dialer_queue';
+                    $destExten = $campaign['agent_dest_value'] ?? 's';
                     break;
                 case 'custom':
                 default:
-                    $destContext = 'dialer-extension';
-                    $destExten = 's';
+                    $destContext = 'dialer_agent';
+                    $destExten = $campaign['agent_dest_value'] ?? 's';
                     break;
             }
 
-            // Originate via AMI
+            // Originate via AMI - use LOCAL channel to go through dialer_out context
             $originateParams = [
-                'Channel' => "$trunkEndpoint/$phoneNumber",
-                'Context' => 'dialer-origination',
-                'Exten' => $phoneNumber,
+                'Channel' => "LOCAL/$phoneNumber@dialer_out",
+                'Context' => $destContext,
+                'Exten' => $destExten,
                 'Priority' => '1',
                 'CallerID' => $campaign['callerid'],
                 'Timeout' => '60000', // 60 seconds
                 'Variable' => [
                     "CAMPAIGN_ID=$campaignId",
                     "NUMBER_ID=$numberId",
-                    "DEST_CONTEXT=$destContext",
-                    "DEST_EXTEN=$destExten",
-                    "DEST_VALUE=$destValue",
-                    "TRUNK=$trunkEndpoint",
-                    "RECORDINGS_PATH={$this->config['app']['recordings_path']}"
+                    "TRUNK=$trunkEndpoint"
                 ],
                 'Async' => 'true'
             ];
