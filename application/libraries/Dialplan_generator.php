@@ -109,11 +109,11 @@ exten => _X.,1,NoOp(Dialer Outbound: ${EXTEN} via ${TRUNK})
  same => n,Hangup()
 
 [dialer_agent]
-; Agent destination context - dials agent extension via LOCAL channel
-exten => _X.,1,NoOp(Dialer Agent: Connecting to extension ${EXTEN})
+; Agent destination context - dials agent extension using CHANNEL_TYPE
+exten => _X.,1,NoOp(Dialer Agent: Connecting to ${CHANNEL_TYPE}/${EXTEN})
  same => n,Set(CDR(accountcode)=${CAMPAIGN_ID})
- same => n,UserEvent(AgentConnect,Campaign:${CAMPAIGN_ID},Number:${NUMBER_ID},Agent:${EXTEN})
- same => n,Dial(LOCAL/${EXTEN}@from-internal,60)
+ same => n,UserEvent(AgentConnect,Campaign:${CAMPAIGN_ID},Number:${NUMBER_ID},Agent:${EXTEN},ChannelType:${CHANNEL_TYPE})
+ same => n,Dial(${CHANNEL_TYPE}/${EXTEN},60)
  same => n,NoOp(Agent Dial Status: ${DIALSTATUS})
  same => n,Hangup()
 

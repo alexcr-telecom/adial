@@ -371,6 +371,7 @@ class ADialDaemon {
             // Determine destination context and extension based on agent_dest_type
             $destContext = 'dialer_agent';
             $destExten = $campaign['agent_dest_value'] ?? 's';
+            $channelType = 'SIP'; // Default channel type
 
             switch ($campaign['agent_dest_type']) {
                 case 'ivr':
@@ -379,7 +380,14 @@ class ADialDaemon {
                     break;
                 case 'exten':
                     $destContext = 'dialer_agent';
-                    $destExten = $campaign['agent_dest_value'] ?? 's';
+                    // Parse "SIP/103" or "PJSIP/103" into channel type and extension
+                    $agentValue = $campaign['agent_dest_value'] ?? '';
+                    if (strpos($agentValue, '/') !== false) {
+                        list($channelType, $destExten) = explode('/', $agentValue, 2);
+                        $channelType = strtoupper($channelType);
+                    } else {
+                        $destExten = $agentValue;
+                    }
                     break;
                 case 'queue':
                     $destContext = 'dialer_queue';
@@ -403,7 +411,8 @@ class ADialDaemon {
                 'Variable' => [
                     "CAMPAIGN_ID=$campaignId",
                     "NUMBER_ID=$numberId",
-                    "TRUNK=$trunkEndpoint"
+                    "TRUNK=$trunkEndpoint",
+                    "CHANNEL_TYPE=$channelType"
                 ],
                 'Async' => 'true'
             ];

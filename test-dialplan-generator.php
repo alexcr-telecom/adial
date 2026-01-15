@@ -65,11 +65,11 @@ try {
 
     // Agent destination context
     $dialplan .= "[dialer_agent]\n";
-    $dialplan .= "; Agent destination context - dials agent extension via LOCAL channel\n";
-    $dialplan .= "exten => _X.,1,NoOp(Dialer Agent: Connecting to extension \${EXTEN})\n";
+    $dialplan .= "; Agent destination context - dials agent extension using CHANNEL_TYPE\n";
+    $dialplan .= "exten => _X.,1,NoOp(Dialer Agent: Connecting to \${CHANNEL_TYPE}/\${EXTEN})\n";
     $dialplan .= " same => n,Set(CDR(accountcode)=\${CAMPAIGN_ID})\n";
-    $dialplan .= " same => n,UserEvent(AgentConnect,Campaign:\${CAMPAIGN_ID},Number:\${NUMBER_ID},Agent:\${EXTEN})\n";
-    $dialplan .= " same => n,Dial(LOCAL/\${EXTEN}@from-internal,60)\n";
+    $dialplan .= " same => n,UserEvent(AgentConnect,Campaign:\${CAMPAIGN_ID},Number:\${NUMBER_ID},Agent:\${EXTEN},ChannelType:\${CHANNEL_TYPE})\n";
+    $dialplan .= " same => n,Dial(\${CHANNEL_TYPE}/\${EXTEN},60)\n";
     $dialplan .= " same => n,NoOp(Agent Dial Status: \${DIALSTATUS})\n";
     $dialplan .= " same => n,Hangup()\n\n";
 
