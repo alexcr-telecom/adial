@@ -471,14 +471,18 @@ class ADialDaemon {
                 'actionid' => $response['ActionID'] ?? 'N/A'
             ]);
 
-            // Check if originate failed
-            if (!isset($response['Response']) || strtolower($response['Response']) !== 'success') {
-                $this->logger->error("Originate failed for number $numberId: " . ($response['Message'] ?? 'Unknown error'));
+            // For async originates, don't fail on empty response - the call may still go through
+            // The actual call status will be determined by Hangup events
+            if (isset($response['Response']) && strtolower($response['Response']) === 'error') {
+                $this->logger->error("Originate explicitly failed for number $numberId: " . ($response['Message'] ?? 'Unknown error'));
 
-                // Mark as originate_failed
+                // Mark as originate_failed only if AMI explicitly returned an error
                 $this->db->prepare("UPDATE campaign_numbers SET status = 'originate_failed' WHERE id = ?")->execute([$numberId]);
                 return;
             }
+
+            // Mark as dialing - Hangup event will set final status
+            $this->db->prepare("UPDATE campaign_numbers SET status = 'dialing' WHERE id = ?")->execute([$numberId]);
 
             // Increment current calls counter
             $this->campaigns[$campaignId]['currentCalls']++;
