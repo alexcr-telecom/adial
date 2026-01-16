@@ -70,8 +70,10 @@ try {
     $dialplan .= " same => n,Set(MONTH=\${STRFTIME(\${EPOCH},,\%m)})\n";
     $dialplan .= " same => n,Set(DAY=\${STRFTIME(\${EPOCH},,\%d)})\n";
     $dialplan .= " same => n,Set(CALLFILENAME=\${UNIQUEID}-\${EXTEN}-\${CAMPAIGN_ID})\n";
+    $dialplan .= " same => n,Set(RECORDING_PATH=/var/spool/asterisk/monitor/dialer/\${YEAR}/\${MONTH}/\${DAY}/\${CALLFILENAME}.wav)\n";
     $dialplan .= " same => n,System(mkdir -p /var/spool/asterisk/monitor/dialer/\${YEAR}/\${MONTH}/\${DAY})\n";
-    $dialplan .= " same => n,MixMonitor(/var/spool/asterisk/monitor/dialer/\${YEAR}/\${MONTH}/\${DAY}/\${CALLFILENAME}.wav,b)\n";
+    $dialplan .= " same => n,MixMonitor(\${RECORDING_PATH},b)\n";
+    $dialplan .= " same => n,Set(CDR(recordingfile)=\${RECORDING_PATH})\n";
     $dialplan .= " same => n,Dial(\${TRUNK}/\${EXTEN},\${DIAL_TIMEOUT})\n";
     $dialplan .= " same => n,Hangup()\n\n";
 

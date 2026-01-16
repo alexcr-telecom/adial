@@ -92,27 +92,39 @@ class Cdr extends MY_Controller {
 
     /**
      * Get recording file path (handles both absolute and relative paths)
+     * Also tries to find recording by CDR fields if recording_file is empty
      */
-    private function get_recording_path($recording_file) {
-        if (empty($recording_file)) {
-            return null;
+    private function get_recording_path($recording_file, $cdr = null) {
+        // If recording_file is set, try to find it
+        if (!empty($recording_file)) {
+            // Check if it's an absolute path
+            if (strpos($recording_file, '/') === 0) {
+                if (file_exists($recording_file)) {
+                    return $recording_file;
+                }
+            } else {
+                // Try monitor directory first (dialer recordings)
+                $path = '/var/spool/asterisk/monitor/' . $recording_file;
+                if (file_exists($path)) {
+                    return $path;
+                }
+
+                // Fall back to recording directory
+                $path = '/var/spool/asterisk/recording/' . $recording_file;
+                if (file_exists($path)) {
+                    return $path;
+                }
+            }
         }
 
-        // Check if it's an absolute path
-        if (strpos($recording_file, '/') === 0) {
-            return file_exists($recording_file) ? $recording_file : null;
-        }
-
-        // Try monitor directory first (dialer recordings)
-        $path = '/var/spool/asterisk/monitor/' . $recording_file;
-        if (file_exists($path)) {
-            return $path;
-        }
-
-        // Fall back to recording directory
-        $path = '/var/spool/asterisk/recording/' . $recording_file;
-        if (file_exists($path)) {
-            return $path;
+        // Try to find recording by CDR fields (uniqueid-destination-campaign_id.wav)
+        if ($cdr && !empty($cdr->uniqueid) && !empty($cdr->destination) && !empty($cdr->campaign_id)) {
+            $date = date('Y/m/d', strtotime($cdr->start_time));
+            $filename = $cdr->uniqueid . '-' . $cdr->destination . '-' . $cdr->campaign_id . '.wav';
+            $path = '/var/spool/asterisk/monitor/dialer/' . $date . '/' . $filename;
+            if (file_exists($path)) {
+                return $path;
+            }
         }
 
         return null;
@@ -124,11 +136,11 @@ class Cdr extends MY_Controller {
     public function download_recording($id) {
         $cdr = $this->Cdr_model->get_by_id($id);
 
-        if (!$cdr || !$cdr->recording_file) {
+        if (!$cdr) {
             show_404();
         }
 
-        $file_path = $this->get_recording_path($cdr->recording_file);
+        $file_path = $this->get_recording_path($cdr->recording_file, $cdr);
 
         if (!$file_path) {
             show_error('Recording file not found');
@@ -145,11 +157,11 @@ class Cdr extends MY_Controller {
     public function play_recording($id) {
         $cdr = $this->Cdr_model->get_by_id($id);
 
-        if (!$cdr || !$cdr->recording_file) {
+        if (!$cdr) {
             show_404();
         }
 
-        $file_path = $this->get_recording_path($cdr->recording_file);
+        $file_path = $this->get_recording_path($cdr->recording_file, $cdr);
 
         if (!$file_path) {
             show_error('Recording file not found');

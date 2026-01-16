@@ -155,18 +155,25 @@
                                         <?php
                                         $recording_exists = false;
                                         $full_recording_path = '';
+
+                                        // Try recording_file field first
                                         if (!empty($cdr->recording_file)) {
-                                            // Check if it's an absolute path (starts with /)
                                             if (strpos($cdr->recording_file, '/') === 0) {
                                                 $full_recording_path = $cdr->recording_file;
                                             } else {
-                                                // Try monitor directory first (dialer recordings)
                                                 $full_recording_path = '/var/spool/asterisk/monitor/' . $cdr->recording_file;
                                                 if (!file_exists($full_recording_path)) {
-                                                    // Fall back to recording directory
                                                     $full_recording_path = '/var/spool/asterisk/recording/' . $cdr->recording_file;
                                                 }
                                             }
+                                            $recording_exists = file_exists($full_recording_path);
+                                        }
+
+                                        // If not found, try to find by CDR fields (uniqueid-destination-campaign_id.wav)
+                                        if (!$recording_exists && !empty($cdr->uniqueid) && !empty($cdr->destination) && !empty($cdr->campaign_id)) {
+                                            $date = date('Y/m/d', strtotime($cdr->start_time));
+                                            $filename = $cdr->uniqueid . '-' . $cdr->destination . '-' . $cdr->campaign_id . '.wav';
+                                            $full_recording_path = '/var/spool/asterisk/monitor/dialer/' . $date . '/' . $filename;
                                             $recording_exists = file_exists($full_recording_path);
                                         }
                                         ?>
